@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const fs = require('fs');
 const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -29,11 +30,52 @@ const collectorAuth = (req, res, next) => {
     }
 };
 
+function resolveCollectorTemplate(res, legacyTemplate, options = {}) {
+    const uiFlags = res && res.locals && res.locals.uiFlags;
+    const modernizationEnabled = Boolean(uiFlags && uiFlags.modernization);
+    const collectorV2Enabled = Boolean(uiFlags && uiFlags.collector);
+
+    if (!modernizationEnabled || !collectorV2Enabled) {
+        return legacyTemplate;
+    }
+
+    const normalizedTemplate = legacyTemplate.startsWith('collector/')
+        ? legacyTemplate.replace(/^collector\//, '')
+        : legacyTemplate;
+    const candidate = options.v2Template || `collector/v2/${normalizedTemplate}`;
+    const viewEngine = (res && res.app && res.app.get('view engine')) || 'ejs';
+    let viewDirs = res && res.app && res.app.get('views');
+
+    if (!viewDirs) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    } else if (!Array.isArray(viewDirs)) {
+        viewDirs = [viewDirs];
+    }
+
+    viewDirs = viewDirs.filter(Boolean);
+    if (viewDirs.length === 0) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    }
+
+    const candidateFile = `${candidate}.${viewEngine}`;
+    for (const viewDir of viewDirs) {
+        if (fs.existsSync(path.join(viewDir, candidateFile))) {
+            return candidate;
+        }
+    }
+
+    return legacyTemplate;
+}
+
+function renderCollectorView(res, template, locals = {}, options = {}) {
+    return res.render(resolveCollectorTemplate(res, template, options), locals);
+}
+
 // Login page
 router.get('/login', async (req, res) => {
     try {
         const appSettings = await getAppSettings();
-        res.render('collector/login', {
+        renderCollectorView(res, 'collector/login', {
             title: 'Login Tukang Tagih',
             appSettings: appSettings
         });

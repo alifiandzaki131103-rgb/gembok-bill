@@ -265,7 +265,7 @@
     </style>
 </head>
 <body>
-    <div class="main-container">
+    <div class="main-container" data-testid="public-voucher-container">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-10">
@@ -312,7 +312,7 @@
                     <% } %>
 
                     <!-- Voucher Cards Grid -->
-                    <div class="row g-4">
+                    <div class="row g-4" data-testid="public-voucher-grid">
                         <% voucherPackages.forEach((pkg, index) => { %>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <div class="voucher-card">
@@ -339,7 +339,7 @@
                                             <li><i class="bi bi-shield-check"></i> Keamanan terjamin</li>
                                             <li><i class="bi bi-headset"></i> Support 24/7</li>
                                         </ul>
-                                        <button class="btn btn-primary btn-purchase" data-package-id="<%= pkg.id %>" data-package-name="<%= pkg.name %>" data-package-price="<%= pkg.price %>">
+                                        <button class="btn btn-primary btn-purchase" data-package-id="<%= pkg.id %>" data-package-name="<%= pkg.name %>" data-package-price="<%= pkg.price %>" data-testid="public-voucher-purchase">
                                             <i class="bi bi-cart-plus me-2"></i>Beli Sekarang
                                         </button>
                                     </div>
@@ -364,7 +364,7 @@
     </div>
 
     <!-- Modal Pembelian -->
-    <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true" data-testid="public-voucher-modal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -378,12 +378,12 @@
                         <!-- Package info akan diisi oleh JavaScript -->
                     </div>
 
-                    <form id="purchaseForm">
+                    <form id="purchaseForm" data-testid="public-voucher-form">
                         <div class="mb-3">
                             <label for="customerName" class="form-label">
                                 <i class="bi bi-person me-2"></i>Nama Lengkap
                             </label>
-                            <input type="text" class="form-control" id="customerName" name="customerName" required
+                            <input type="text" class="form-control" id="customerName" name="customerName" required data-testid="public-voucher-name"
                                    placeholder="Masukkan nama lengkap Anda">
                         </div>
 
@@ -391,7 +391,7 @@
                             <label for="customerPhone" class="form-label">
                                 <i class="bi bi-phone me-2"></i>Nomor WhatsApp
                             </label>
-                            <input type="tel" class="form-control" id="customerPhone" name="customerPhone" required
+                            <input type="tel" class="form-control" id="customerPhone" name="customerPhone" required data-testid="public-voucher-phone"
                                    placeholder="628xxxxxxxxxx" pattern="^[0-9]{10,15}$">
                             <div class="form-text">Voucher akan dikirim ke nomor WhatsApp ini</div>
                         </div>
@@ -429,7 +429,7 @@
                         <input type="hidden" id="selectedMethod" name="selectedMethod">
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-modal" id="submitBtn" disabled>
+                            <button type="submit" class="btn btn-primary btn-modal" id="submitBtn" disabled data-testid="public-voucher-submit">
                                 <span class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
                                 <i class="bi bi-credit-card me-2"></i>Bayar Sekarang
                             </button>

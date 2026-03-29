@@ -6,8 +6,22 @@
 /* Import existing responsive styles */
 @import url('./responsive.css');
 
+/* CANONICAL BREAKPOINT REFERENCE (aligned with responsive.css):
+   Mobile  -> @media (max-width: 768px)
+   Compact -> @media (max-width: 480px)
+   Mini    -> @media (max-width: 360px)
+   Tablet  -> @media (min-width: 769px) and (max-width: 1024px)
+   Laptop  -> @media (min-width: 1025px)
+   Desktop -> @media (min-width: 1280px)
+   This file keeps customer-specific overrides mobile-first to preserve existing behavior.
+*/
+
+/* Collision rule guard:
+   .card/.btn/.table/.sidebar are configured in components.css.
+   Customer responsive overrides use --*-collision-* variables only. */
+
 /* ========================================
-   CUSTOMER SPECIFIC MOBILE STYLES
+   CANONICAL CATEGORY: MOBILE (<= --bp-mobile / 768px)
    ======================================== */
 
 /* Mobile-first approach for customer pages */
@@ -38,8 +52,8 @@
     /* Card improvements for mobile */
     .card {
         margin-bottom: 15px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        --card-collision-radius: 12px;
+        --card-collision-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
     
     .card-header {
@@ -59,21 +73,11 @@
     }
     
     .table {
-        font-size: 0.85rem;
+        --table-collision-font-size: 0.85rem;
+        --table-collision-cell-padding-y: 8px;
+        --table-collision-cell-padding-x: 6px;
+        --table-collision-head-font-size: 0.8rem;
         margin-bottom: 0;
-    }
-    
-    .table th,
-    .table td {
-        padding: 8px 6px;
-        vertical-align: middle;
-    }
-    
-    .table th {
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
     
     /* Button group improvements */
@@ -125,11 +129,12 @@
     
     /* Button improvements */
     .btn {
-        min-height: 44px;
-        padding: 10px 16px;
-        font-size: 0.9rem;
-        border-radius: 8px;
-        font-weight: 500;
+        --btn-collision-min-height: 44px;
+        --btn-collision-padding-y: 10px;
+        --btn-collision-padding-x: 16px;
+        --btn-collision-font-size: 0.9rem;
+        --btn-collision-radius: 8px;
+        --btn-collision-font-weight: 500;
     }
     
     .btn-sm {
@@ -214,7 +219,7 @@
 }
 
 /* ========================================
-   SMALL MOBILE STYLES (≤480px)
+   CANONICAL CATEGORY: MOBILE (COMPACT SUBRANGE <=480px)
    ======================================== */
 @media (max-width: 480px) {
     
@@ -240,19 +245,17 @@
     
     /* Tables */
     .table {
-        font-size: 0.8rem;
-    }
-    
-    .table th,
-    .table td {
-        padding: 6px 4px;
+        --table-collision-font-size: 0.8rem;
+        --table-collision-cell-padding-y: 6px;
+        --table-collision-cell-padding-x: 4px;
     }
     
     /* Buttons */
     .btn {
-        min-height: 42px;
-        padding: 8px 12px;
-        font-size: 0.85rem;
+        --btn-collision-min-height: 42px;
+        --btn-collision-padding-y: 8px;
+        --btn-collision-padding-x: 12px;
+        --btn-collision-font-size: 0.85rem;
     }
     
     .btn-group .btn {
@@ -310,7 +313,7 @@
 }
 
 /* ========================================
-   LANDSCAPE MOBILE STYLES
+   CANONICAL CATEGORY: MOBILE (LANDSCAPE MODIFIER)
    ======================================== */
 @media (max-width: 768px) and (orientation: landscape) {
     
@@ -357,8 +360,9 @@
     
     /* Larger touch targets */
     .btn {
-        min-height: 48px;
-        padding: 12px 20px;
+        --btn-collision-min-height: 48px;
+        --btn-collision-padding-y: 12px;
+        --btn-collision-padding-x: 20px;
     }
     
     .btn-sm {
@@ -712,7 +716,7 @@
     font-size: 11px !important;
 }
 
-/* Responsive adjustments for home button */
+/* CANONICAL CATEGORY: MOBILE (COMPACT SUBRANGE <=480px) - HOME BUTTON */
 @media (max-width: 480px) {
     .nav-item.home-button {
         width: 50px !important;
@@ -743,7 +747,7 @@
     }
 }
 
-/* Landscape mode adjustments */
+/* CANONICAL CATEGORY: MOBILE (LANDSCAPE MODIFIER) - HOME BUTTON */
 @media (max-width: 768px) and (orientation: landscape) {
     .nav-item.home-button {
         width: 52px !important;
@@ -756,8 +760,8 @@
     }
 }
 
-/* Hide mobile nav on desktop */
-@media (min-width: 768px) {
+/* CANONICAL CATEGORY: TABLET/LAPTOP/DESKTOP (>=768px legacy guard; behavior preserved) */
+@media (min-width: 769px) {
     .bottom-nav {
         display: none !important;
     }
@@ -968,7 +972,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* Mobile responsive for payment pages */
+/* CANONICAL CATEGORY: MOBILE (<= --bp-mobile / 768px) - PAYMENT PAGES */
 @media (max-width: 768px) {
     .payment-card {
         margin: 10px;
@@ -1164,7 +1168,7 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .card {
-        border: 2px solid #000;
+        --card-collision-border: #000;
     }
     
     .btn-primary {

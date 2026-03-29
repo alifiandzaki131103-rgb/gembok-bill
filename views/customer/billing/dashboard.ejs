@@ -211,6 +211,43 @@
       margin-top: 30px;
       padding: 20px 0;
     }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .package-image-preview {
+      max-width: 80px;
+      height: auto;
+      border-radius: 5px;
+      border: 1px solid #e9ecef;
+    }
+
+    .qr-image {
+      max-width: 150px;
+      height: auto;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-full-width {
+      width: 100%;
+    }
+
+    .report-note-ellipsis {
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .report-note-ellipsis-mobile {
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     
     @media (max-width: 768px) {
       .main-container {
@@ -435,7 +472,7 @@
                         </span>
                         <% if (customer.package_image) { %>
                           <div class="mt-2">
-                            <img src="/img/packages/<%= customer.package_image %>" alt="<%= customer.package_name %>" style="max-width: 80px; height: auto; border-radius: 5px; border: 1px solid #e9ecef;">
+                            <img src="/img/packages/<%= customer.package_image %>" alt="<%= customer.package_name %>" class="package-image-preview">
                           </div>
                         <% } %>
                       <% } else { %>
@@ -589,7 +626,7 @@
                               <div class="col-4 col-sm-2 col-lg-4"><small class="text-muted">💳 Kartu</small></div>
                             </div>
                             <div class="text-center mt-3 mb-3">
-                              <div id="qr-container" style="display:none;">
+                              <div id="qr-container" class="is-hidden">
                                 <% 
                                   // Tentukan file QR berdasarkan paket customer
                                   let qrFile = 'ewallet.jpg'; // default
@@ -619,13 +656,13 @@
                                     qrFile = 'packages/' + customer.package_image;
                                   }
                                 %>
-                                <img id="qr-image" src="/img/<%= qrFile %>" alt="QR Code Pembayaran <%= customer ? customer.package_name : '' %>" style="max-width: 150px; height: auto; border-radius: 8px; border: 2px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" class="mb-2">
+                                <img id="qr-image" src="/img/<%= qrFile %>" alt="QR Code Pembayaran <%= customer ? customer.package_name : '' %>" class="mb-2 qr-image">
                                 <br><small class="text-muted">Scan QR Code untuk pembayaran paket <%= customer ? customer.package_name : '' %></small>
                               </div>
                               <button class="btn btn-outline-success btn-sm" id="show-qr-btn" onclick="toggleQRCode()">
                                 <i class="bi bi-qr-code me-1"></i>Tampilkan QR Code
                               </button>
-                              <button class="btn btn-outline-secondary btn-sm" id="hide-qr-btn" onclick="toggleQRCode()" style="display:none;">
+                              <button class="btn btn-outline-secondary btn-sm is-hidden" id="hide-qr-btn" onclick="toggleQRCode()">
                                 <i class="bi bi-eye-slash me-1"></i>Sembunyikan QR
                               </button>
                             </div>
@@ -719,7 +756,7 @@
           <!-- Desktop/Tablet: Table -->
           <div class="d-none d-md-block">
             <div class="table-responsive">
-              <table class="table table-hover" id="invoicesTable" style="width:100%">
+              <table class="table table-hover table-full-width" id="invoicesTable">
                 <thead>
                   <tr>
                     <th>No. Tagihan</th>
@@ -867,7 +904,7 @@
               <!-- Desktop/Tablet: Table -->
               <div class="d-none d-md-block">
                 <div class="table-responsive">
-                  <table class="table table-hover" style="width:100%">
+                  <table class="table table-hover table-full-width">
                     <thead>
                       <tr>
                         <th>ID</th>
@@ -891,7 +928,7 @@
                               <%= rep.status || '-' %>
                             </span>
                           </td>
-                          <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          <td class="report-note-ellipsis">
                             <%= rep.notes && rep.notes.length ? rep.notes[rep.notes.length - 1] : '-' %>
                           </td>
                           <td>
@@ -928,7 +965,7 @@
                         <div class="small text-muted mb-2">
                           Lokasi: <%= rep.location || '-' %>
                         </div>
-                        <div class="small" style="max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <div class="small report-note-ellipsis-mobile">
                           <em><%= rep.notes && rep.notes.length ? rep.notes[rep.notes.length - 1] : '-' %></em>
                         </div>
                         <a href="/customer/trouble/detail/<%= rep.id %>" class="btn btn-primary w-100 mt-2">Detail</a>
@@ -1051,22 +1088,22 @@
     const showBtn = document.getElementById('show-qr-btn');
     const hideBtn = document.getElementById('hide-qr-btn');
     
-    if (qrContainer.style.display === 'none') {
+    if (window.getComputedStyle(qrContainer).display === 'none') {
       // Show QR Code image
-      qrContainer.style.display = 'block';
-      showBtn.style.display = 'none';
-      hideBtn.style.display = 'inline-block';
+      qrContainer.classList.remove('is-hidden');
+      showBtn.classList.add('is-hidden');
+      hideBtn.classList.remove('is-hidden');
     } else {
       // Hide QR Code image
-      qrContainer.style.display = 'none';
-      showBtn.style.display = 'inline-block';
-      hideBtn.style.display = 'none';
+      qrContainer.classList.add('is-hidden');
+      showBtn.classList.remove('is-hidden');
+      hideBtn.classList.add('is-hidden');
     }
   }
     </script>
 
   <div class="install-banner">
-    <button class="btn" data-install-app style="display:none">Install Aplikasi</button>
+    <button class="btn is-hidden" data-install-app>Install Aplikasi</button>
   </div>
 
   <!-- Bottom nav (mobile) 5 menu: Billing, Laporan, Home, Invoice, Profile -->

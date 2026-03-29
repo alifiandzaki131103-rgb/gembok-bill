@@ -577,11 +577,35 @@
         .card h4 {
             margin-bottom: 1.25rem;
         }
+
+        .alert-container-fixed {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1055;
+        }
+
+        .edit-alert-initial {
+            display: none;
+        }
+
+        .toast-floating {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+
+        .restart-notif-floating {
+            z-index: 9999;
+            min-width: 300px;
+        }
     </style>
 </head>
 <body>
 <!-- Alert Container untuk Notifikasi -->
-<div id="alert-container" style="position:fixed;top:70px;right:20px;z-index:1055;"></div>
+<div id="alert-container" class="alert-container-fixed"></div>
 
 <style>
 /* Mobile alert positioning */
@@ -686,7 +710,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div id="editAlert" style="display:none;"></div>
+        <div id="editAlert" class="edit-alert-initial"></div>
         <input type="hidden" id="deviceId">
         <div class="mb-3">
           <label for="ssid" class="form-label">SSID</label>
@@ -919,7 +943,7 @@ $(document).ready(function(){
             const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : type === 'info' ? 'bg-primary' : 'bg-warning';
             
             const toastHtml = `
-                <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <div id="${toastId}" class="toast toast-floating align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="d-flex">
                         <div class="toast-body">
                             <i class="bi ${iconClass} me-2"></i>
@@ -1152,7 +1176,7 @@ $(document).ready(function() {
 </div>
 
 <!-- Notifikasi -->
-<div id="restartNotif" class="alert d-none position-fixed top-0 end-0 m-4" style="z-index:9999; min-width:300px;"></div>
+<div id="restartNotif" class="alert d-none position-fixed top-0 end-0 m-4 restart-notif-floating"></div>
 
 <script>
 $(function() {

@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -22,6 +23,44 @@ try {
 } catch (error) {
     console.log('WhatsApp not available for OTP sending');
     sendMessage = null;
+}
+
+function resolveTechnicianTemplate(res, legacyTemplate, options = {}) {
+    const uiFlags = res?.locals?.uiFlags;
+    const modernizationEnabled = Boolean(uiFlags && uiFlags.modernization);
+    const technicianV2Enabled = Boolean(uiFlags && uiFlags.technician);
+
+    if (!modernizationEnabled || !technicianV2Enabled) {
+        return legacyTemplate;
+    }
+
+    const candidate = options.v2Template || `technician/${legacyTemplate}`;
+    const viewEngine = (res && res.app && res.app.get('view engine')) || 'ejs';
+    let viewDirs = res && res.app && res.app.get('views');
+
+    if (!viewDirs) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    } else if (!Array.isArray(viewDirs)) {
+        viewDirs = [viewDirs];
+    }
+
+    viewDirs = viewDirs.filter(Boolean);
+    if (viewDirs.length === 0) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    }
+
+    const candidateFile = `${candidate}.${viewEngine}`;
+    for (const viewDir of viewDirs) {
+        if (fs.existsSync(path.join(viewDir, candidateFile))) {
+            return candidate;
+        }
+    }
+
+    return legacyTemplate;
+}
+
+function renderTechnicianView(res, template, locals = {}, options = {}) {
+    return res.render(resolveTechnicianTemplate(res, template, options), locals);
 }
 
 /**
@@ -252,7 +291,7 @@ router.get('/login', (req, res) => {
         customerPortalOtp: getSetting('customerPortalOtp', false) // Tambah status OTP
     };
 
-    res.render('technicianLogin', { 
+    renderTechnicianView(res, 'technicianLogin', { 
         error: null, 
         success: null,
         step: 'phone',
@@ -270,7 +309,7 @@ router.post('/request-otp', async (req, res) => {
         const { getSetting } = require('../config/settingsManager');
 
         if (!phone) {
-            return res.render('technicianLogin', { 
+            return renderTechnicianView(res, 'technicianLogin', { 
                 error: 'Nomor telepon harus diisi',
                 success: null,
                 step: 'phone',
@@ -293,7 +332,7 @@ router.post('/request-otp', async (req, res) => {
         // Cek apakah teknisi valid
         const technician = await authManager.isValidTechnician(formattedPhone);
         if (!technician) {
-            return res.render('technicianLogin', { 
+            return renderTechnicianView(res, 'technicianLogin', { 
                 error: 'Nomor telepon tidak terdaftar sebagai teknisi',
                 success: null,
                 step: 'phone',
@@ -320,7 +359,7 @@ router.post('/request-otp', async (req, res) => {
                 // Simpan phone di session untuk step selanjutnya
                 req.session.pendingTechnicianPhone = formattedPhone;
                 
-                res.render('technicianLogin', { 
+                renderTechnicianView(res, 'technicianLogin', { 
                     error: null,
                     success: `Kode OTP telah dikirim ke nomor ${formattedPhone} via WhatsApp`,
                     step: 'otp',
@@ -334,7 +373,7 @@ router.post('/request-otp', async (req, res) => {
                 });
             } catch (whatsappError) {
                 logger.error('Failed to send OTP:', whatsappError);
-                res.render('technicianLogin', { 
+                renderTechnicianView(res, 'technicianLogin', { 
                     error: 'Gagal mengirim OTP. Silakan coba lagi atau hubungi admin.',
                     success: null,
                     step: 'phone',
@@ -365,7 +404,7 @@ router.post('/request-otp', async (req, res) => {
                 res.redirect('/technician/dashboard');
             } catch (error) {
                 logger.error('Error during direct login:', error);
-                res.render('technicianLogin', { 
+                renderTechnicianView(res, 'technicianLogin', { 
                     error: 'Terjadi kesalahan saat login. Silakan coba lagi.',
                     success: null,
                     step: 'phone',
@@ -379,7 +418,7 @@ router.post('/request-otp', async (req, res) => {
 
     } catch (error) {
         logger.error('Error requesting OTP:', error);
-        res.render('technicianLogin', { 
+        renderTechnicianView(res, 'technicianLogin', { 
             error: 'Terjadi kesalahan sistem. Silakan coba lagi.',
             success: null,
             step: 'phone',
@@ -405,7 +444,7 @@ router.post('/verify-otp', async (req, res) => {
         const verification = await authManager.verifyOTP(phone, otp_code);
         
         if (!verification.valid) {
-            return res.render('technicianLogin', { 
+            return renderTechnicianView(res, 'technicianLogin', { 
                 error: 'Kode OTP tidak valid atau sudah kadaluarsa',
                 success: null,
                 step: 'otp',
@@ -442,7 +481,7 @@ router.post('/verify-otp', async (req, res) => {
 
     } catch (error) {
         logger.error('Error verifying OTP:', error);
-        res.render('technicianLogin', { 
+        renderTechnicianView(res, 'technicianLogin', { 
             error: 'Terjadi kesalahan sistem. Silakan coba lagi.',
             success: null,
             step: 'phone',

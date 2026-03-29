@@ -673,7 +673,7 @@
                             <button type="button" class="btn btn-outline-danger btn-sm" onclick="cleanupExpiredVouchers()">
                                 <i class="bi bi-trash me-1"></i>Cleanup Sekarang
                             </button>
-                            <div id="cleanupStatus" class="mt-2" style="display: none;">
+                            <div id="cleanupStatus" class="mt-2 cleanup-status-hidden">
                                 <small class="text-muted">Memproses cleanup...</small>
                             </div>
                         </div>
@@ -689,7 +689,7 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover" id="hotspotTable" style="width:100%">
+                                <table class="table table-bordered table-hover w-100" id="hotspotTable">
                                     <thead class="table-light">
                                         <tr>
                                             <th>No</th>
@@ -809,7 +809,7 @@
             <div class="modal-body p-4">
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0 me-3">
-                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2rem;"></i>
+                        <i class="bi bi-exclamation-triangle-fill text-warning icon-size-2rem"></i>
                     </div>
                     <div>
                         <p class="mb-1">Apakah Anda yakin ingin memutus koneksi user:</p>
@@ -849,7 +849,7 @@
   </div>
 </div>
 <!-- Notifikasi -->
-<div id="restartNotif" class="alert d-none position-fixed top-0 end-0 m-4" style="z-index:1055; min-width:300px;"></div>
+<div id="restartNotif" class="alert d-none position-fixed top-0 end-0 m-4 restart-notif-floating"></div>
 <!-- Toast Notification -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -957,6 +957,19 @@
     .btn i {
         transition: transform 0.2s;
     }
+    .cleanup-status-hidden {
+        display: none;
+    }
+
+    .icon-size-2rem {
+        font-size: 2rem;
+    }
+
+    .restart-notif-floating {
+        z-index: 1055;
+        min-width: 300px;
+    }
+
     /* Mobile responsive fixes */
     @media (max-width: 767.98px) {
         .main-content {
@@ -986,43 +999,42 @@ window.vouchersToPrint = {};
 
 // Template for Model 1 (Simple)
 function getModel1VoucherHTML(voucher, price, companyHeader, adminKontak) {
-    const colors = { '5000': '#1433FD', '10000': '#663399', '20000': '#0000FF', '50000': '#FF8C00' };
-    const color = colors[price] || '#FF69B4';
+    const colors = { '5000': 'voucher-model1--5000', '10000': 'voucher-model1--10000', '20000': 'voucher-model1--20000', '50000': 'voucher-model1--50000' };
+    const colorClass = colors[String(price)] || 'voucher-model1--default';
     const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 
     return `
-        <div style="border: 1px solid ${color}; border-radius: 5px; margin: 4px; padding: 5px; width: 220px; text-align: center; font-family: 'Courier New', monospace; page-break-inside: avoid; background-color: #fff;">
-            <div style="font-weight: bold; font-size: 14px;">${companyHeader}</div>
-            <div style="font-size: 12px; margin: 5px 0;">Paket ${formattedPrice}</div>
-            <div style="border: 1px solid ${color}; border-radius: 5px; padding: 8px; margin: 5px 0; font-weight: bold; font-size: 16px;">
+        <div class="voucher-model1-card ${colorClass}">
+            <div class="voucher-model1-header">${companyHeader}</div>
+            <div class="voucher-model1-price">Paket ${formattedPrice}</div>
+            <div class="voucher-model1-code">
                 ${voucher.username}
             </div>
-            <div style="font-size: 10px;">Login: ${voucher.username}</div>
-            ${voucher.username !== voucher.password ? `<div style="font-size: 10px;">Pass: ${voucher.password}</div>` : ''}
-            <div style="font-size: 10px; margin-top: 5px;">Kontak: ${adminKontak}</div>
+            <div class="voucher-model1-meta">Login: ${voucher.username}</div>
+            ${voucher.username !== voucher.password ? `<div class="voucher-model1-meta">Pass: ${voucher.password}</div>` : ''}
+            <div class="voucher-model1-contact">Kontak: ${adminKontak}</div>
         </div>
     `;
 }
 
 // Template for Model 2 (Standard)
 function getModel2VoucherHTML(voucher, price, companyHeader, adminKontak) {
-    const color = '#bf0000';
     const formattedPrice = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(price);
     return `
-        <div style="border: 1px solid ${color}; border-radius: 4px; text-align: center; font-size: 12px; font-weight:bold; width: 245px; margin: 4px; page-break-inside: avoid; background-color: #f2f2f2;">
-            <div style="background-color: #E6E6E6; border: 1px solid ${color}; border-radius: 4px; padding: 5px;">
-                <div style="font-size: 16px; font-weight: bold;">${companyHeader}</div>
+        <div class="voucher-model2-card">
+            <div class="voucher-model2-header-wrap">
+                <div class="voucher-model2-header">${companyHeader}</div>
             </div>
-            <div style="font-weight:bold; font-size:28px; color:#555; margin-top: 5px;">
-                <small style="font-size:18px;">Rp</small>${formattedPrice}
+            <div class="voucher-model2-price">
+                <small class="voucher-model2-price-currency">Rp</small>${formattedPrice}
             </div>
-            <div style="font-weight:bold; color:#555; font-size:13px;">Kode Voucher</div>
-            <div style="border: 1px solid #000; border-radius: 6px; font-weight:bold; font-size:22px; color: #FFF; background-color: ${color}; margin: 5px; padding: 5px;">
+            <div class="voucher-model2-label">Kode Voucher</div>
+            <div class="voucher-model2-code">
                 ${voucher.username}
             </div>
-            <div style="font-size: 10px;">Login dengan kode di atas</div>
-             ${voucher.username !== voucher.password ? `<div style="font-size: 10px;">Password: ${voucher.password}</div>` : ''}
-            <div style="font-size: 10px; margin-top: 5px;">${adminKontak}</div>
+            <div class="voucher-model2-meta">Login dengan kode di atas</div>
+             ${voucher.username !== voucher.password ? `<div class="voucher-model2-meta">Password: ${voucher.password}</div>` : ''}
+            <div class="voucher-model2-contact">${adminKontak}</div>
         </div>
     `;
 }
@@ -1141,6 +1153,107 @@ function printVouchers() {
                 .footer {
                     font-size: 0.8em; margin-top: 8px; color: #666;
                     border-top: 1px solid #eee; padding-top: 5px;
+                }
+                .voucher-model1-card {
+                    border: 1px solid var(--voucher-model1-color, #FF69B4);
+                    border-radius: 5px;
+                    margin: 4px;
+                    padding: 5px;
+                    width: 220px;
+                    text-align: center;
+                    font-family: 'Courier New', monospace;
+                    page-break-inside: avoid;
+                    background-color: #fff;
+                }
+                .voucher-model1-header {
+                    font-weight: bold;
+                    font-size: 14px;
+                }
+                .voucher-model1-price {
+                    font-size: 12px;
+                    margin: 5px 0;
+                }
+                .voucher-model1-code {
+                    border: 1px solid var(--voucher-model1-color, #FF69B4);
+                    border-radius: 5px;
+                    padding: 8px;
+                    margin: 5px 0;
+                    font-weight: bold;
+                    font-size: 16px;
+                }
+                .voucher-model1-meta {
+                    font-size: 10px;
+                }
+                .voucher-model1-contact {
+                    font-size: 10px;
+                    margin-top: 5px;
+                }
+                .voucher-model1--5000 {
+                    --voucher-model1-color: #1433FD;
+                }
+                .voucher-model1--10000 {
+                    --voucher-model1-color: #663399;
+                }
+                .voucher-model1--20000 {
+                    --voucher-model1-color: #0000FF;
+                }
+                .voucher-model1--50000 {
+                    --voucher-model1-color: #FF8C00;
+                }
+                .voucher-model1--default {
+                    --voucher-model1-color: #FF69B4;
+                }
+                .voucher-model2-card {
+                    border: 1px solid #bf0000;
+                    border-radius: 4px;
+                    text-align: center;
+                    font-size: 12px;
+                    font-weight: bold;
+                    width: 245px;
+                    margin: 4px;
+                    page-break-inside: avoid;
+                    background-color: #f2f2f2;
+                }
+                .voucher-model2-header-wrap {
+                    background-color: #E6E6E6;
+                    border: 1px solid #bf0000;
+                    border-radius: 4px;
+                    padding: 5px;
+                }
+                .voucher-model2-header {
+                    font-size: 16px;
+                    font-weight: bold;
+                }
+                .voucher-model2-price {
+                    font-weight: bold;
+                    font-size: 28px;
+                    color: #555;
+                    margin-top: 5px;
+                }
+                .voucher-model2-price-currency {
+                    font-size: 18px;
+                }
+                .voucher-model2-label {
+                    font-weight: bold;
+                    color: #555;
+                    font-size: 13px;
+                }
+                .voucher-model2-code {
+                    border: 1px solid #000;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    font-size: 22px;
+                    color: #FFF;
+                    background-color: #bf0000;
+                    margin: 5px;
+                    padding: 5px;
+                }
+                .voucher-model2-meta {
+                    font-size: 10px;
+                }
+                .voucher-model2-contact {
+                    font-size: 10px;
+                    margin-top: 5px;
                 }
             </style>
         </head>
@@ -1333,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tableBody.innerHTML = `
                         <tr>
                             <td colspan="4" class="text-center py-5 animate__animated animate__fadeIn">
-                                <i class="bi bi-wifi-off text-secondary me-2" style="font-size: 2rem;"></i>
+                                <i class="bi bi-wifi-off text-secondary me-2 icon-size-2rem"></i>
                                 <p class="mb-0 mt-2">Tidak ada user hotspot aktif</p>
                                 <p class="text-muted small">Semua user hotspot sedang tidak terhubung</p>
                             </td>
@@ -1369,7 +1482,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tableBody.innerHTML = `
                     <tr>
                         <td colspan="4" class="text-center py-5 animate__animated animate__fadeIn">
-                            <i class="bi bi-exclamation-triangle-fill text-danger me-2" style="font-size: 2rem;"></i>
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-2 icon-size-2rem"></i>
                             <p class="mb-0 mt-2 text-danger">Gagal memuat data</p>
                             <p class="text-danger small">${errorMessage}</p>
                         </td>

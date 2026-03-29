@@ -9,6 +9,40 @@ const { getSettingsWithCache, getSetting } = require('../config/settingsManager'
 const billingManager = require('../config/billing');
 const router = express.Router();
 
+function resolveCustomerTemplate(res, legacyTemplate, options = {}) {
+  const uiFlags = res && res.locals && res.locals.uiFlags;
+  const shouldUseModernUi = Boolean(uiFlags && uiFlags.modernization && uiFlags.customer);
+  if (!shouldUseModernUi) return legacyTemplate;
+
+  const candidate = options.v2Template || `customer/${legacyTemplate}`;
+  const viewEngine = (res && res.app && res.app.get('view engine')) || 'ejs';
+  let viewDirs = res && res.app && res.app.get('views');
+
+  if (!viewDirs) {
+    viewDirs = [];
+  } else if (!Array.isArray(viewDirs)) {
+    viewDirs = [viewDirs];
+  }
+
+  viewDirs = viewDirs.filter(Boolean);
+  if (viewDirs.length === 0) {
+    viewDirs = [path.join(__dirname, '..', 'views')];
+  }
+
+  const candidateFile = `${candidate}.${viewEngine}`;
+  for (const viewDir of viewDirs) {
+    if (fs.existsSync(path.join(viewDir, candidateFile))) {
+      return candidate;
+    }
+  }
+
+  return legacyTemplate;
+}
+
+function renderCustomerView(res, template, locals, options) {
+  return res.render(resolveCustomerTemplate(res, template, options), locals);
+}
+
 // Phone helpers: normalize and variants (08..., 62..., +62...)
 function normalizePhone(input) {
   if (!input) return '';
@@ -829,7 +863,7 @@ async function updatePasswordOptimized(phone, newPassword) {
 // GET: Login page
 router.get('/login', (req, res) => {
   const settings = getSettingsWithCache();
-  res.render('login', { settings, error: null });
+  renderCustomerView(res, 'login', { settings, error: null });
 });
 
 // GET: Base customer portal - redirect appropriately
@@ -851,7 +885,7 @@ router.post('/login', async (req, res) => {
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
         return res.status(400).json({ success: false, message: 'Nomor HP harus valid (08..., 62..., atau +62...)' });
       } else {
-        return res.render('login', { settings, error: 'Nomor HP tidak valid.' });
+        return renderCustomerView(res, 'login', { settings, error: 'Nomor HP tidak valid.' });
       }
     }
     
@@ -862,7 +896,7 @@ router.post('/login', async (req, res) => {
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
         return res.status(401).json({ success: false, message: 'Nomor HP tidak terdaftar.' });
       } else {
-        return res.render('login', { settings, error: 'Nomor HP tidak valid atau belum terdaftar.' });
+        return renderCustomerView(res, 'login', { settings, error: 'Nomor HP tidak valid atau belum terdaftar.' });
       }
     }
     
@@ -893,7 +927,7 @@ router.post('/login', async (req, res) => {
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
         return res.json({ success: true, message: 'OTP berhasil dikirim', redirect: `/customer/otp?phone=${normalizedPhone}` });
       } else {
-        return res.render('otp', { phone: normalizedPhone, error: null, otp_length: otpLength, settings });
+        return renderCustomerView(res, 'otp', { phone: normalizedPhone, error: null, otp_length: otpLength, settings });
       }
     } else {
       req.session.phone = normalizedPhone;
@@ -931,7 +965,7 @@ router.post('/login', async (req, res) => {
     if (req.xhr || req.headers.accept.indexOf('json') > -1) {
       return res.status(500).json({ success: false, message: 'Terjadi kesalahan saat login' });
     } else {
-      return res.render('login', { settings: getSettingsWithCache(), error: 'Terjadi kesalahan saat login.' });
+      return renderCustomerView(res, 'login', { settings: getSettingsWithCache(), error: 'Terjadi kesalahan saat login.' });
     }
   }
 });
@@ -940,7 +974,7 @@ router.post('/login', async (req, res) => {
 router.get('/otp', (req, res) => {
   const { phone } = req.query;
   const settings = getSettingsWithCache();
-  res.render('otp', { phone: normalizePhone(phone), error: null, otp_length: settings.otp_length || 6, settings });
+  renderCustomerView(res, 'otp', { phone: normalizePhone(phone), error: null, otp_length: settings.otp_length || 6, settings });
 });
 
 // POST: Verifikasi OTP
@@ -950,7 +984,7 @@ router.post('/otp', async (req, res) => {
   const data = otpStore[normalizedPhone];
   const settings = getSettingsWithCache();
   if (!data || data.otp !== otp || Date.now() > data.expires) {
-    return res.render('otp', { phone: normalizedPhone, error: 'OTP salah atau sudah kadaluarsa.', otp_length: settings.otp_length || 6, settings });
+    return renderCustomerView(res, 'otp', { phone: normalizedPhone, error: 'OTP salah atau sudah kadaluarsa.', otp_length: settings.otp_length || 6, settings });
   }
   // Sukses login
   delete otpStore[normalizedPhone];
@@ -1013,7 +1047,7 @@ router.get('/billing', async (req, res) => {
     res.redirect('/customer/billing/dashboard');
   } catch (error) {
     console.error('Error loading billing page:', error);
-    res.render('error', { 
+    renderCustomerView(res, 'error', { 
       message: 'Terjadi kesalahan saat memuat data tagihan',
       settings 
     });
@@ -1254,7 +1288,7 @@ router.get('/dashboard', async (req, res) => {
     // Pastikan data tidak null
     if (!data) {
       console.log(`❌ No data returned for phone: ${phone}`);
-      return res.render('dashboard', { 
+      return renderCustomerView(res, 'dashboard', { 
         customer: { phone, ssid: '-', status: 'Tidak ditemukan', lastInform: '-' }, 
         connectedUsers: [], 
         notif: 'Data perangkat tidak ditemukan.',
@@ -1264,7 +1298,7 @@ router.get('/dashboard', async (req, res) => {
     }
     
     const customerWithAdmin = addAdminNumber(data);
-    res.render('dashboard', { 
+    renderCustomerView(res, 'dashboard', { 
       customer: customerWithAdmin, 
       connectedUsers: data.connectedUsers || [],
       settings,
@@ -1285,7 +1319,7 @@ router.get('/dashboard', async (req, res) => {
       pppoeUsername: '-',
       totalAssociations: '0'
     });
-    res.render('dashboard', { 
+    renderCustomerView(res, 'dashboard', { 
       customer: fallbackCustomer, 
       connectedUsers: [], 
       notif: 'Terjadi kesalahan saat memuat data.',
@@ -1309,7 +1343,7 @@ router.post('/change-ssid', async (req, res) => {
   }
   const data = await getCustomerDeviceData(phone);
   const customerWithAdmin = addAdminNumber(data || { phone, ssid: '-', status: '-', lastChange: '-' });
-  res.render('dashboard', { 
+  renderCustomerView(res, 'dashboard', { 
     customer: customerWithAdmin, 
     connectedUsers: data ? data.connectedUsers : [], 
     notif: ok ? 'Nama WiFi (SSID) berhasil diubah.' : 'Gagal mengubah SSID.',
@@ -1375,7 +1409,7 @@ router.post('/change-password', async (req, res) => {
   }
   const data = await getCustomerDeviceData(phone);
   const customerWithAdmin = addAdminNumber(data || { phone, ssid: '-', status: '-', lastChange: '-' });
-  res.render('dashboard', { 
+  renderCustomerView(res, 'dashboard', { 
     customer: customerWithAdmin, 
     connectedUsers: data ? data.connectedUsers : [], 
     notif: ok ? 'Password WiFi berhasil diubah.' : 'Gagal mengubah password.',
@@ -1455,7 +1489,7 @@ router.get('/dashboard/mobile', async (req, res) => {
   try {
     const data = await getCustomerDeviceData(phone);
     if (!data) {
-      return res.render('dashboard-mobile', {
+      return renderCustomerView(res, 'dashboard-mobile', {
         customer: { phone, ssid: '-', status: 'Tidak ditemukan', lastInform: '-' },
         connectedUsers: [],
         notif: 'Data perangkat tidak ditemukan.',
@@ -1464,7 +1498,7 @@ router.get('/dashboard/mobile', async (req, res) => {
       });
     }
     const customerWithAdmin = addAdminNumber(data);
-    res.render('dashboard-mobile', {
+    renderCustomerView(res, 'dashboard-mobile', {
       customer: customerWithAdmin,
       connectedUsers: data.connectedUsers || [],
       settings,
@@ -1484,7 +1518,7 @@ router.get('/dashboard/mobile', async (req, res) => {
       pppoeUsername: '-',
       totalAssociations: '0'
     });
-    res.render('dashboard-mobile', {
+    renderCustomerView(res, 'dashboard-mobile', {
       customer: fallbackCustomer,
       connectedUsers: [],
       notif: 'Terjadi kesalahan saat memuat data.',

@@ -1,20 +1,20 @@
 /* Dark Theme (not pitch black) for Gembok Bill UI - non-breaking, UI-only */
-/* Palette: slate/blue-gray inspired */
+/* Theme layer keeps legacy token names, design-system.css remains canonical source-of-truth. */
 :root {
-  --bg-0: #0f172a;  /* slate-900 */
-  --bg-1: #111827;  /* gray-900 */
-  --bg-2: #0b1220;  /* custom deep navy */
-  --panel: #1f2937; /* gray-800 */
-  --panel-2: #1e293b; /* slate-800 */
-  --muted: #94a3b8; /* slate-400 */
-  --text: #e5e7eb;  /* gray-200 */
-  --text-2: #cbd5e1;/* slate-300 */
-  --border: #263244;/* custom slate border */
-  --primary: #60a5fa;/* blue-400 */
-  --primary-2: #3b82f6;/* blue-500 */
-  --success: #22c55e;/* green-500 */
-  --warning: #f59e0b;/* amber-500 */
-  --danger: #ef4444; /* red-500 */
+  --bg-0: var(--gray-900, #0f172a);
+  --bg-1: var(--dark, #111827);
+  --bg-2: var(--gray-800, #0b1220);
+  --panel: var(--gray-800, #1f2937);
+  --panel-2: var(--gray-800, #1e293b);
+  --muted: var(--gray-400, #94a3b8);
+  --text: var(--gray-200, #e5e7eb);
+  --text-2: var(--gray-300, #cbd5e1);
+  --border: var(--gray-700, #263244);
+  --primary: var(--primary-color, #60a5fa);
+  --primary-2: var(--primary-dark, #3b82f6);
+  --success: var(--success-color, #22c55e);
+  --warning: var(--warning-color, #f59e0b);
+  --danger: var(--danger-color, #ef4444);
 }
 
 /* Base */

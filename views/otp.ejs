@@ -4,125 +4,222 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verifikasi OTP | Portal ISP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/design-system.css">
+  <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/style.css">
   <style>
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      font-family: var(--font-family-body);
+      background:
+        radial-gradient(circle at 10% 15%, rgba(15, 76, 255, 0.35), transparent 40%),
+        radial-gradient(circle at 88% 8%, rgba(255, 107, 0, 0.28), transparent 35%),
+        radial-gradient(circle at 52% 85%, rgba(0, 183, 168, 0.2), transparent 40%),
+        #081225;
+      color: #0f172a;
     }
     .otp-container {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      padding-top: 80px; /* Kompensasi untuk navbar fixed */
+      display: grid;
+      place-items: center;
+      padding: clamp(1rem, 2vw, 2rem);
+      padding-top: 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .otp-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.26) 0.7px, transparent 0.7px);
+      background-size: 4px 4px;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
     }
     .otp-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: none;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      max-width: 400px;
+      position: relative;
+      z-index: 1;
       width: 100%;
+      max-width: 27rem;
+      border-radius: 1.75rem;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 251, 255, 0.86));
+      border: 1px solid rgba(15, 76, 255, 0.24);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.22);
+      backdrop-filter: blur(16px);
     }
     .otp-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px 20px;
+      color: #fff;
       text-align: center;
+      padding: 1.95rem 1.45rem 1.65rem;
+      background: linear-gradient(130deg, #0f4cff 0%, #00a7ff 58%, #00b7a8 100%);
+    }
+    .otp-header h4 {
+      font-family: var(--font-family-display);
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
     .logo-container {
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 15px;
+      width: 5.2rem;
+      height: 5.2rem;
+      margin: 0 auto 0.95rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 14px 24px rgba(8, 33, 84, 0.24);
+      display: grid;
+      place-items: center;
+      animation: otpFloat 3.2s ease-in-out infinite;
     }
     .logo-container img {
-      width: 50px;
-      height: 50px;
+      width: 3.15rem;
+      height: 3.15rem;
       object-fit: contain;
+      border-radius: 0.55rem;
     }
     .form-container {
-      padding: 30px 25px;
+      padding: 1.75rem 1.45rem 1.55rem;
+    }
+    .otp-info {
+      border-radius: 0.9rem;
+      padding: 0.85rem 0.95rem;
+      margin-bottom: 1rem;
+      background: rgba(15, 76, 255, 0.08);
+      color: #1144c7;
+      border: 1px solid rgba(15, 76, 255, 0.2);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .alert {
+      border-radius: 0.9rem;
+      border: 1px solid transparent;
+      padding: 0.78rem 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .alert-danger {
+      background: rgba(225, 29, 72, 0.09);
+      color: #a41441;
+      border-color: rgba(225, 29, 72, 0.28);
     }
     .form-floating {
-      margin-bottom: 20px;
+      margin-bottom: 0.95rem;
     }
     .form-control {
-      border: 2px solid #e9ecef;
-      border-radius: 12px;
-      padding: 15px 20px;
-      font-size: 16px;
-      transition: all 0.3s ease;
+      border: 1px solid rgba(15, 76, 255, 0.2);
+      border-radius: 0.9rem;
+      padding: 1rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
       text-align: center;
-      letter-spacing: 2px;
-      font-weight: 600;
+      letter-spacing: 0.35em;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.84);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .form-control:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      border-color: #0f4cff;
+      box-shadow: 0 0 0 0.24rem rgba(15, 76, 255, 0.18);
+      background: #fff;
+    }
+    .form-floating > label {
+      color: #4a5b77;
+      font-weight: 600;
     }
     .btn-verify {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 12px;
-      padding: 15px;
-      font-size: 16px;
-      font-weight: 600;
-      transition: all 0.3s ease;
+      border: 0;
+      border-radius: 0.9rem;
+      width: 100%;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #fff;
+      background: linear-gradient(130deg, #0f4cff 0%, #0466ff 45%, #00a7ff 100%);
+      box-shadow: 0 14px 26px rgba(15, 76, 255, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
     .btn-verify:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 16px 30px rgba(15, 76, 255, 0.34);
+      color: #fff;
     }
-    .alert {
-      border-radius: 12px;
-      border: none;
-      padding: 12px 16px;
+    .btn-verify:disabled {
+      opacity: 0.86;
+      cursor: not-allowed;
     }
-    .alert-danger {
-      background: rgba(220, 53, 69, 0.1);
-      color: #dc3545;
-      border-left: 4px solid #dc3545;
+    .otp-btn-loading {
+      display: none;
+    }
+    .btn-verify.is-loading .otp-btn-label {
+      display: none;
+    }
+    .btn-verify.is-loading .otp-btn-loading {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .footer-text {
-      color: #6c757d;
-      font-size: 12px;
-      margin-top: 20px;
+      color: #526075;
+      font-size: 0.76rem;
+      margin-top: 1.1rem;
     }
-    .otp-info {
-      background: rgba(102, 126, 234, 0.1);
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-left: 4px solid #667eea;
+    .otp-navbar-glass {
+      z-index: 1000;
+      background: rgba(8, 15, 34, 0.74);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+    }
+    .otp-navbar-glass .navbar-brand {
+      color: #f8fbff;
+      font-family: var(--font-family-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .otp-navbar-glass .navbar-brand img {
+      height: 1.95rem;
+      width: auto;
+      border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.12rem;
+    }
+    @keyframes otpFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
     @media (max-width: 576px) {
       .otp-container {
-        padding: 10px;
+        padding: 0.8rem;
+        padding-top: 5.5rem;
       }
       .otp-card {
-        border-radius: 15px;
+        border-radius: 1.35rem;
+      }
+      .otp-header {
+        padding: 1.55rem 1.1rem 1.35rem;
       }
       .form-container {
-        padding: 25px 20px;
+        padding: 1.35rem 1.1rem 1.2rem;
+      }
+      .form-control {
+        font-size: 0.95rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="otp-container">
+  <div class="otp-container" data-testid="customer-otp-container">
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light position-fixed top-0 start-0 w-100" style="z-index: 1000; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+    <nav class="navbar navbar-expand-lg navbar-light position-fixed top-0 start-0 w-100 otp-navbar-glass">
       <div class="container">
         <a class="navbar-brand" href="/">
           <img src="/img/<%= (settings && settings.logo_filename) ? settings.logo_filename : 'logo.png' %>" alt="Logo" height="30">
@@ -134,7 +231,7 @@
       </div>
     </nav>
     
-    <div class="otp-card">
+    <div class="otp-card" data-testid="customer-otp-card">
       <div class="otp-header">
         <div class="logo-container">
           <img src="/img/<%= (settings && settings.logo_filename) ? settings.logo_filename : 'logo.svg' %>?ts=<%= Date.now() %>" alt="Logo">
@@ -144,7 +241,7 @@
       </div>
       <div class="form-container">
         <% if (error) { %>
-          <div class="alert alert-danger">
+          <div class="alert alert-danger" data-testid="customer-otp-alert">
             <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
           </div>
         <% } %>
@@ -155,20 +252,38 @@
         <form method="POST" action="/customer/otp">
           <input type="hidden" name="phone" value="<%= phone %>">
           <div class="form-floating">
-            <input type="text" class="form-control" id="otp" name="otp" placeholder="Kode OTP" required pattern="[0-9]{<%= otp_length %>}" maxlength="<%= otp_length %>" autofocus>
+            <input type="text" class="form-control" id="otp" name="otp" placeholder="Kode OTP" required pattern="[0-9]{<%= otp_length %>}" maxlength="<%= otp_length %>" autofocus data-testid="customer-otp-input">
             <label for="otp">
               <i class="bi bi-shield-lock me-2"></i>Kode OTP (<%= otp_length %> digit)
             </label>
           </div>
-          <button type="submit" class="btn btn-primary btn-verify w-100">
-            <i class="bi bi-check-circle me-2"></i>Verifikasi
+          <button type="submit" class="btn btn-primary btn-verify" id="otpSubmitBtn" data-testid="customer-otp-submit">
+            <span class="otp-btn-label"><i class="bi bi-check-circle me-2"></i>Verifikasi</span>
+            <span class="otp-btn-loading"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memverifikasi...</span>
           </button>
         </form>
+        <div class="text-center mt-3">
+          <a href="/customer/login" class="btn btn-link p-0" data-testid="customer-otp-resend">Kirim ulang OTP</a>
+        </div>
         <div class="text-center footer-text">
           &copy; <%= new Date().getFullYear() %> <%= typeof settings !== 'undefined' && settings.company_header ? settings.company_header : 'ALIJAYA DIGITAL NETWORK' %>
         </div>
       </div>
     </div>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const otpForm = document.querySelector('form[action="/customer/otp"]');
+      const submitBtn = document.getElementById('otpSubmitBtn');
+
+      if (!otpForm || !submitBtn) return;
+
+      otpForm.addEventListener('submit', function () {
+        submitBtn.classList.add('is-loading');
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.disabled = true;
+      });
+    });
+  </script>
 </body>
 </html>

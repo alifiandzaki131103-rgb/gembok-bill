@@ -8,6 +8,64 @@ const fs = require('fs');
 const session = require('express-session');
 const { getSetting } = require('./config/settingsManager');
 
+function isFeatureEnabled(settingKey, defaultValue = false) {
+    const rawValue = getSetting(settingKey, defaultValue);
+
+    if (typeof rawValue === 'string') {
+        return rawValue.toLowerCase() === 'true';
+    }
+
+    return Boolean(rawValue);
+}
+
+const runtimeFeatures = {
+    technicianSync: isFeatureEnabled('feature_flags.technician_sync_enabled', false),
+    whatsappIntegration: isFeatureEnabled('feature_flags.whatsapp_integration_enabled', false),
+    scheduledTasks: isFeatureEnabled('feature_flags.scheduled_tasks_enabled', false),
+    intervalMonitoring: isFeatureEnabled('feature_flags.interval_monitoring_enabled', false),
+    pppoeRealtimeMonitoring: isFeatureEnabled('feature_flags.pppoe_realtime_monitor_enabled', false),
+    legacyPPPoEMonitoring: isFeatureEnabled('feature_flags.legacy_pppoe_monitor_enabled', false),
+    telegramBot: isFeatureEnabled('telegram_bot.enabled', false)
+};
+
+const UI_PORTAL_FLAGS = {
+    customer: 'customer_ui_v2',
+    admin: 'admin_ui_v2',
+    technician: 'technician_ui_v2',
+    agent: 'agent_ui_v2',
+    collector: 'collector_ui_v2',
+    voucher: 'voucher_ui_v2'
+};
+
+function resolveEffectiveUiFlag(flagKey, modernizationEnabled = null, defaultValue = false) {
+    const isModernizationEnabled = modernizationEnabled !== null
+        ? modernizationEnabled
+        : isFeatureEnabled('ui_modernization_enabled', false);
+
+    if (!isModernizationEnabled) {
+        return false;
+    }
+
+    return isFeatureEnabled(`ui_flags.${flagKey}`, defaultValue);
+}
+
+function buildUiFlags() {
+    const modernizationEnabled = isFeatureEnabled('ui_modernization_enabled', false);
+    const resolved = {
+        modernization: modernizationEnabled
+    };
+
+    Object.entries(UI_PORTAL_FLAGS).forEach(([portalName, flagKey]) => {
+        resolved[portalName] = resolveEffectiveUiFlag(flagKey, modernizationEnabled);
+    });
+
+    return resolved;
+}
+
+function hasMikrotikCredentials() {
+    return Boolean(getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password'));
+}
+
 // Import invoice scheduler
 const invoiceScheduler = require('./config/scheduler');
 
@@ -46,7 +104,11 @@ const technicianSync = {
 };
 
 // Start technician sync service
-technicianSync.start();
+if (runtimeFeatures.technicianSync) {
+    technicianSync.start();
+} else {
+    logger.info('Technician auto-sync disabled (feature_flags.technician_sync_enabled=false)');
+}
 
 // Inisialisasi aplikasi Express
 const app = express();
@@ -78,6 +140,14 @@ app.use(session({
     name: 'admin_session' // Custom session name
 }));
 
+
+// Middleware exposes resolved UI flag map (global + portal) for downstream handlers
+const uiFlagsMiddleware = (req, res, next) => {
+    res.locals.uiFlags = buildUiFlags();
+    next();
+};
+
+app.use(uiFlagsMiddleware);
 
 // Test route untuk debugging
 app.get('/admin/test', (req, res) => {
@@ -369,109 +439,130 @@ app.use('/api/version', versionCheckRouter);
 const scheduledTasks = require('./config/scheduledTasks');
 
 // Inisialisasi WhatsApp dan PPPoE monitoring
-try {
-    whatsapp.connectToWhatsApp().then(sock => {
-        if (sock) {
-            // Set sock instance untuk whatsapp
-            whatsapp.setSock(sock);
+if (runtimeFeatures.whatsappIntegration) {
+    try {
+        whatsapp.connectToWhatsApp().then(sock => {
+            if (sock) {
+                // Set sock instance untuk whatsapp
+                whatsapp.setSock(sock);
 
-            // Make WhatsApp socket globally available
-            global.whatsappSocket = sock;
-            global.getWhatsAppSocket = () => sock;
+                // Make WhatsApp socket globally available
+                global.whatsappSocket = sock;
+                global.getWhatsAppSocket = () => sock;
 
-            // Set sock instance untuk PPPoE monitoring
-            pppoeMonitor.setSock(sock);
+                // Set sock instance untuk PPPoE monitoring
+                pppoeMonitor.setSock(sock);
 
-            // Initialize Agent WhatsApp Commands
-            const AgentWhatsAppIntegration = require('./config/agentWhatsAppIntegration');
-            const agentWhatsApp = new AgentWhatsAppIntegration(whatsapp);
-            agentWhatsApp.initialize();
+                // Initialize Agent WhatsApp Commands
+                const AgentWhatsAppIntegration = require('./config/agentWhatsAppIntegration');
+                const agentWhatsApp = new AgentWhatsAppIntegration(whatsapp);
+                agentWhatsApp.initialize();
 
-            console.log('🤖 Agent WhatsApp Commands initialized');
-            pppoeCommands.setSock(sock);
+                console.log('🤖 Agent WhatsApp Commands initialized');
+                pppoeCommands.setSock(sock);
 
-            // Set sock instance untuk GenieACS commands
-            genieacsCommands.setSock(sock);
+                // Set sock instance untuk GenieACS commands
+                genieacsCommands.setSock(sock);
 
-            // Set sock instance untuk MikroTik commands
-            mikrotikCommands.setSock(sock);
+                // Set sock instance untuk MikroTik commands
+                mikrotikCommands.setSock(sock);
 
-            // Set sock instance untuk RX Power Monitor
-            rxPowerMonitor.setSock(sock);
-            // Set sock instance untuk trouble report
-            const troubleReport = require('./config/troubleReport');
-            troubleReport.setSockInstance(sock);
+                // Set sock instance untuk RX Power Monitor
+                rxPowerMonitor.setSock(sock);
 
-            // Initialize scheduled tasks
-            scheduledTasks.initialize();
+                // Set sock instance untuk trouble report
+                const troubleReport = require('./config/troubleReport');
+                troubleReport.setSockInstance(sock);
 
-            // Initialize database tables for legacy databases without agent feature
-            const initAgentTables = () => {
-                return new Promise((resolve, reject) => {
-                    try {
-                        // AgentManager sudah memiliki createTables() yang otomatis membuat semua tabel agent
-                        const AgentManager = require('./config/agentManager');
-                        const agentManager = new AgentManager();
-                        console.log('✅ Agent tables created/verified by AgentManager');
-                        resolve();
-                    } catch (error) {
-                        console.error('Error initializing agent tables:', error);
-                        reject(error);
-                    }
-                });
-            };
+                if (runtimeFeatures.scheduledTasks) {
+                    // Initialize scheduled tasks
+                    scheduledTasks.initialize();
+                } else {
+                    logger.info('Scheduled tasks disabled (feature_flags.scheduled_tasks_enabled=false)');
+                }
 
-            // Call init after database connected
-            initAgentTables().then(() => {
-                console.log('Database initialization completed successfully');
-            }).catch((err) => {
-                console.error('Database initialization failed:', err);
-            });
+                // Initialize database tables for legacy databases without agent feature
+                const initAgentTables = () => {
+                    return new Promise((resolve, reject) => {
+                        try {
+                            // AgentManager sudah memiliki createTables() yang otomatis membuat semua tabel agent
+                            const AgentManager = require('./config/agentManager');
+                            const agentManager = new AgentManager();
+                            console.log('✅ Agent tables created/verified by AgentManager');
+                            resolve();
+                        } catch (error) {
+                            console.error('Error initializing agent tables:', error);
+                            reject(error);
+                        }
+                    });
+                };
 
-            // Initialize PPPoE monitoring jika MikroTik dikonfigurasi
-            if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
-                pppoeMonitor.initializePPPoEMonitoring().then(() => {
-                    logger.info('PPPoE monitoring initialized');
+                // Call init after database connected
+                initAgentTables().then(() => {
+                    console.log('Database initialization completed successfully');
                 }).catch((err) => {
-                    logger.error('Error initializing PPPoE monitoring:', err);
+                    console.error('Database initialization failed:', err);
                 });
-            }
 
-            // Initialize Interval Manager (replaces individual monitoring systems)
-            try {
-                const intervalManager = require('./config/intervalManager');
-                intervalManager.initialize();
-                logger.info('Interval Manager initialized with all monitoring systems');
-            } catch (err) {
-                logger.error('Error initializing Interval Manager:', err);
-            }
-        }
-    }).catch(err => {
-        logger.error('Error connecting to WhatsApp:', err);
-    });
+                // Initialize PPPoE monitoring jika MikroTik dikonfigurasi
+                if (runtimeFeatures.pppoeRealtimeMonitoring && hasMikrotikCredentials()) {
+                    pppoeMonitor.initializePPPoEMonitoring().then(() => {
+                        logger.info('PPPoE monitoring initialized');
+                    }).catch((err) => {
+                        logger.error('Error initializing PPPoE monitoring:', err);
+                    });
+                } else {
+                    logger.info('Realtime PPPoE monitoring disabled (feature_flags.pppoe_realtime_monitor_enabled=false)');
+                }
 
-    // Mulai monitoring PPPoE lama jika dikonfigurasi (fallback)
-    if (getSetting('mikrotik_host') && getSetting('mikrotik_user') && getSetting('mikrotik_password')) {
-        monitorPPPoEConnections().catch(err => {
-            logger.error('Error starting legacy PPPoE monitoring:', err);
+                // Initialize Interval Manager (replaces individual monitoring systems)
+                if (runtimeFeatures.intervalMonitoring) {
+                    try {
+                        const intervalManager = require('./config/intervalManager');
+                        intervalManager.initialize();
+                        logger.info('Interval Manager initialized with all monitoring systems');
+                    } catch (err) {
+                        logger.error('Error initializing Interval Manager:', err);
+                    }
+                } else {
+                    logger.info('Interval monitoring disabled (feature_flags.interval_monitoring_enabled=false)');
+                }
+            }
+        }).catch(err => {
+            logger.error('Error connecting to WhatsApp:', err);
         });
+
+        // Mulai monitoring PPPoE lama jika dikonfigurasi (fallback)
+        if (runtimeFeatures.legacyPPPoEMonitoring && hasMikrotikCredentials()) {
+            monitorPPPoEConnections().catch(err => {
+                logger.error('Error starting legacy PPPoE monitoring:', err);
+            });
+        } else {
+            logger.info('Legacy PPPoE monitoring disabled (feature_flags.legacy_pppoe_monitor_enabled=false)');
+        }
+    } catch (error) {
+        logger.error('Error initializing services:', error);
     }
-} catch (error) {
-    logger.error('Error initializing services:', error);
+} else {
+    logger.info('WhatsApp integration disabled (feature_flags.whatsapp_integration_enabled=false)');
 }
 
 // Initialize Telegram Bot
-try {
-    const telegramBot = require('./config/telegramBot');
+if (runtimeFeatures.telegramBot) {
+    try {
+        const telegramBot = require('./config/telegramBot');
 
-    // Start bot if enabled
-    telegramBot.start().then(() => {
-        logger.info('Telegram bot initialization completed');
-    }).catch(err => {
-        logger.error('Error starting Telegram bot:', err);
-    });
-} catch (error) {
-    logger.error('Error initializing Telegram bot:', error);
+        // Start bot if enabled
+        telegramBot.start().then(() => {
+            logger.info('Telegram bot initialization completed');
+        }).catch(err => {
+            logger.error('Error starting Telegram bot:', err);
+        });
+    } catch (error) {
+        logger.error('Error initializing Telegram bot:', error);
+    }
+} else {
+    logger.info('Telegram bot disabled (telegram_bot.enabled=false)');
 }
 
 // Tambahkan delay yang lebih lama untuk reconnect WhatsApp
@@ -515,10 +606,12 @@ function startServer(portToUse) {
 
 // Mulai server dengan port dari settings.json
 const port = getSetting('server_port', 4555);
-logger.info(`Attempting to start server on configured port: ${port}`);
 
-// Mulai server dengan port dari konfigurasi
-startServer(port);
+if (require.main === module) {
+    logger.info(`Attempting to start server on configured port: ${port}`);
+    // Mulai server dengan port dari konfigurasi
+    startServer(port);
+}
 
 // Auto setup GenieACS DNS untuk development (DISABLED - menggunakan web interface)
 // setTimeout(async () => {
@@ -546,3 +639,5 @@ const { addCustomerTag } = require('./config/customerTag');
 
 // Export app untuk testing
 module.exports = app;
+module.exports.uiFlagsMiddleware = uiFlagsMiddleware;
+module.exports.buildUiFlags = buildUiFlags;

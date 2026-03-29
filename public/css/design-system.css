@@ -1,74 +1,122 @@
 /* DESIGN SYSTEM - ISP Portal */
 
 :root {
-  /* Primary Colors */
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --primary-color: #667eea;
-  --primary-dark: #764ba2;
-  
-  /* Secondary Colors */
-  --secondary-color: #6c757d;
-  --accent-color: #4895ef;
-  
-  /* Status Colors */
-  --success-color: #198754;
-  --warning-color: #ffc107;
-  --danger-color: #dc3545;
-  --info-color: #0dcaf0;
-  
-  /* Neutral Colors */
-  --white: #ffffff;
-  --light: #f8f9fa;
-  --gray-100: #f8f9fa;
-  --gray-200: #e9ecef;
-  --gray-300: #dee2e6;
-  --gray-400: #ced4da;
-  --gray-500: #adb5bd;
-  --gray-600: #6c757d;
-  --gray-700: #495057;
-  --gray-800: #343a40;
-  --gray-900: #212529;
-  --dark: #212529;
-  
-  /* Typography */
-  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
-  
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  
-  /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 50rem;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
-  /* Transitions */
+  /* Canonical design tokens — source-of-truth for brand + UI primitives */
+
+  /* Bold visual brand palette */
+  --color-brand-primary: #0f4cff;
+  --color-brand-primary-strong: #0a36b8;
+  --color-brand-secondary: #ff6b00;
+  --color-brand-secondary-strong: #c44f00;
+  --color-brand-accent: #00b7a8;
+  --gradient-brand-main: linear-gradient(135deg, #0f4cff 0%, #00a7ff 55%, #00b7a8 100%);
+  --gradient-brand-warm: linear-gradient(135deg, #ff6b00 0%, #ffb347 100%);
+
+  /* Neutral + semantic colors */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-success: #1f9d62;
+  --color-warning: #f59e0b;
+  --color-danger: #e11d48;
+  --color-info: #0891b2;
+
+  /* Typography tokens */
+  --font-family-display: 'Bricolage Grotesque', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-body: 'Manrope', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-family: var(--font-family-body);
+  --type-scale-xs: 0.75rem;
+  --type-scale-sm: 0.875rem;
+  --type-scale-base: 1rem;
+  --type-scale-lg: 1.125rem;
+  --type-scale-xl: 1.25rem;
+  --type-scale-2xl: 1.5rem;
+  --type-scale-3xl: 1.875rem;
+  --type-scale-4xl: 2.25rem;
+
+  /* Spacing tokens */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  /* Radius tokens */
+  --radius-1: 0.375rem;
+  --radius-2: 0.5rem;
+  --radius-3: 0.75rem;
+  --radius-4: 1rem;
+  --radius-5: 1.5rem;
+  --radius-pill: 50rem;
+
+  /* Elevation tokens */
+  --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --elevation-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --elevation-3: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --elevation-4: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Legacy aliases for backward compatibility with existing components */
+  --primary-gradient: var(--gradient-brand-main);
+  --primary-color: var(--color-brand-primary);
+  --primary-dark: var(--color-brand-primary-strong);
+  --secondary-color: var(--color-brand-secondary);
+  --accent-color: var(--color-brand-accent);
+  --success-color: var(--color-success);
+  --warning-color: var(--color-warning);
+  --danger-color: var(--color-danger);
+  --info-color: var(--color-info);
+  --white: var(--color-neutral-0);
+  --light: var(--color-neutral-50);
+  --gray-50: var(--color-neutral-50);
+  --gray-100: var(--color-neutral-100);
+  --gray-200: var(--color-neutral-200);
+  --gray-300: var(--color-neutral-300);
+  --gray-400: var(--color-neutral-400);
+  --gray-500: var(--color-neutral-500);
+  --gray-600: var(--color-neutral-600);
+  --gray-700: var(--color-neutral-700);
+  --gray-800: var(--color-neutral-800);
+  --gray-900: var(--color-neutral-900);
+  --dark: var(--color-neutral-900);
+  --font-size-xs: var(--type-scale-xs);
+  --font-size-sm: var(--type-scale-sm);
+  --font-size-base: var(--type-scale-base);
+  --font-size-lg: var(--type-scale-lg);
+  --font-size-xl: var(--type-scale-xl);
+  --font-size-2xl: var(--type-scale-2xl);
+  --font-size-3xl: var(--type-scale-3xl);
+  --font-size-4xl: var(--type-scale-4xl);
+  --spacing-xs: var(--space-1);
+  --spacing-sm: var(--space-2);
+  --spacing-md: var(--space-3);
+  --spacing-lg: var(--space-4);
+  --spacing-xl: var(--space-5);
+  --spacing-2xl: var(--space-6);
+  --radius-sm: var(--radius-1);
+  --radius-md: var(--radius-2);
+  --radius-lg: var(--radius-3);
+  --radius-xl: var(--radius-4);
+  --radius-2xl: var(--radius-5);
+  --radius-full: var(--radius-pill);
+  --shadow-sm: var(--elevation-1);
+  --shadow-md: var(--elevation-2);
+  --shadow-lg: var(--elevation-3);
+  --shadow-xl: var(--elevation-4);
+
+  /* Motion + layering tokens */
   --transition-fast: 0.15s ease-in-out;
   --transition-base: 0.3s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
-  
-  /* Z-index */
   --z-dropdown: 1000;
   --z-sticky: 1020;
   --z-fixed: 1030;

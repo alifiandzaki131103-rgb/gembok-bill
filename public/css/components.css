@@ -56,6 +56,114 @@
   border-left: 4px solid var(--info-color);
 }
 
+/* ===== CANONICAL COLLISION-CONTROLLED BASE COMPONENTS ===== */
+/* Source of truth for .card/.btn/.table/.sidebar.
+   Responsive files MUST only tune these via --*-collision-* variables. */
+/*
+  Collision governance ledger (Task 4)
+  - .card    : layout shell + visual primitives via --card-collision-*
+  - .btn     : interaction shell + spacing/type via --btn-collision-*
+  - .table   : tabular shell + cell rhythm via --table-collision-*
+  - .sidebar : panel shell + chrome via --sidebar-collision-*
+*/
+
+/* [canonical-component] .card */
+.card {
+  --card-collision-bg: var(--white);
+  --card-collision-border: var(--gray-200);
+  --card-collision-radius: var(--radius-lg);
+  --card-collision-shadow: var(--shadow-sm);
+  --card-collision-color: var(--gray-700);
+  background: var(--card-collision-bg);
+  border: 1px solid var(--card-collision-border);
+  border-radius: var(--card-collision-radius);
+  box-shadow: var(--card-collision-shadow);
+  color: var(--card-collision-color);
+}
+
+/* [canonical-component] .btn */
+.btn {
+  --btn-collision-bg: transparent;
+  --btn-collision-color: inherit;
+  --btn-collision-border: var(--gray-300);
+  --btn-collision-border-width: 1px;
+  --btn-collision-radius: var(--radius-md);
+  --btn-collision-padding-y: var(--spacing-sm);
+  --btn-collision-padding-x: calc(var(--spacing-sm) * 1.5);
+  --btn-collision-font-size: var(--font-size-sm);
+  --btn-collision-font-weight: 500;
+  --btn-collision-line-height: 1.2;
+  --btn-collision-min-height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-height: var(--btn-collision-min-height);
+  padding: var(--btn-collision-padding-y) var(--btn-collision-padding-x);
+  border: var(--btn-collision-border-width) solid var(--btn-collision-border);
+  border-radius: var(--btn-collision-radius);
+  background: var(--btn-collision-bg);
+  color: var(--btn-collision-color);
+  font-size: var(--btn-collision-font-size);
+  font-weight: var(--btn-collision-font-weight);
+  line-height: var(--btn-collision-line-height);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover {
+  color: var(--btn-collision-color);
+}
+
+/* [canonical-component] .table */
+.table {
+  --table-collision-bg: var(--white);
+  --table-collision-border: var(--gray-200);
+  --table-collision-head-bg: var(--gray-50);
+  --table-collision-font-size: var(--font-size-sm);
+  --table-collision-cell-padding-y: var(--spacing-sm);
+  --table-collision-cell-padding-x: var(--spacing-sm);
+  --table-collision-head-font-size: var(--font-size-sm);
+  width: 100%;
+  margin-bottom: 0;
+  color: var(--gray-700);
+  font-size: var(--table-collision-font-size);
+  background: var(--table-collision-bg);
+  border-color: var(--table-collision-border);
+}
+
+.table > :not(caption) > * > * {
+  padding: var(--table-collision-cell-padding-y) var(--table-collision-cell-padding-x);
+  border-bottom: 1px solid var(--table-collision-border);
+  vertical-align: middle;
+}
+
+.table > thead > tr > th {
+  background: var(--table-collision-head-bg);
+  color: var(--gray-700);
+  font-size: var(--table-collision-head-font-size);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* [canonical-component] .sidebar */
+.sidebar {
+  --sidebar-collision-bg: var(--white);
+  --sidebar-collision-border: var(--gray-200);
+  --sidebar-collision-color: var(--gray-700);
+  --sidebar-collision-shadow: none;
+  background: var(--sidebar-collision-bg);
+  border-right: 1px solid var(--sidebar-collision-border);
+  box-shadow: var(--sidebar-collision-shadow);
+  color: var(--sidebar-collision-color);
+}
+
+.sidebar a {
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
 /* ===== CARD COMPONENTS ===== */
 .card-gradient {
   background: var(--primary-gradient);

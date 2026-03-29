@@ -46,6 +46,15 @@
     }
     /* badges will use theme.css colors */
     .badge-paid, .badge-unpaid, .badge-overdue { color: inherit; }
+    .billing-table-full-width { width: 100%; }
+    .wallet-qr { display: none; }
+    .payment-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+    }
   </style>
 </head>
 <body>
@@ -126,7 +135,7 @@
             <!-- Desktop / Tablet: Tabel -->
             <div class="d-none d-md-block">
               <div class="table-responsive">
-                <table class="table table-hover" id="invoicesTable" style="width:100%">
+                <table class="table table-hover billing-table-full-width" id="invoicesTable">
                   <thead>
                     <tr>
                       <th>No. Tagihan</th>
@@ -326,7 +335,7 @@
                       <i class="bi bi-download me-1"></i>Download QR
                     </button>
                   </div>
-                  <div id="wallet-qr-dana" class="mt-2" style="display:none;"></div>
+                  <div id="wallet-qr-dana" class="mt-2 wallet-qr"></div>
                 </div>
               </div>
             <% } %>
@@ -354,7 +363,7 @@
                       <i class="bi bi-download me-1"></i>Download PNG
                     </button>
                   </div>
-                  <div id="wallet-qr-ovo" class="mt-2" style="display:none;"></div>
+                  <div id="wallet-qr-ovo" class="mt-2 wallet-qr"></div>
                 </div>
               </div>
             <% } %>
@@ -382,7 +391,7 @@
                       <i class="bi bi-download me-1"></i>Download PNG
                     </button>
                   </div>
-                  <div id="wallet-qr-gopay" class="mt-2" style="display:none;"></div>
+                  <div id="wallet-qr-gopay" class="mt-2 wallet-qr"></div>
                 </div>
               </div>
             <% } %>
@@ -705,9 +714,8 @@
         const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
         
         const toastHtml = `
-          <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" 
-               role="alert" aria-live="assertive" aria-atomic="true" 
-               style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+          <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 payment-toast"
+               role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
               <div class="toast-body">
                 <i class="${iconClass} me-2"></i>

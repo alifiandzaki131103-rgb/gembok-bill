@@ -1,27 +1,38 @@
 /* Responsive sidebar & hamburger for admin panel */
+/* CANONICAL BREAKPOINT MAP (aligned with public/css/responsive.css)
+   - Mobile: <= 768px
+   - Mobile Compact: <= 480px
+   - Tablet: 769px - 1024px
+   - Laptop+: >= 1025px
+   - Desktop: >= 1280px
+   Rule: keep admin queries on this map only (no ad-hoc breakpoints).
+*/
+
+/* Collision rule guard:
+   .sidebar base style remains canonical in components.css.
+   Admin responsive behavior tunes it via --sidebar-collision-* variables. */
 
 /* Global sidebar scrolling fix */
 .sidebar {
+    --sidebar-collision-bg: #222e3c;
+    --sidebar-collision-color: #e2e8f0;
+    --sidebar-collision-border: rgba(255, 255, 255, 0.08);
+    --sidebar-collision-shadow: 2px 0 8px rgba(0,0,0,0.07);
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
 }
 
-/* Hide sidebar by default on mobile */
-@media (max-width: 991.98px) {
+/* [MOBILE + TABLET] Admin sidebar collapse (<= 1024px) */
+@media (max-width: 1024px) {
   .sidebar {
     position: fixed;
     left: -220px;
     top: 0;
     width: 220px;
     height: 100vh;
-    background: #222e3c;
     z-index: 1050;
     transition: left 0.3s;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.07);
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
   }
   .sidebar.show {
     left: 0;
@@ -42,19 +53,14 @@
   }
 }
 
-/* Show sidebar as column on desktop */
-@media (min-width: 992px) {
+/* [LAPTOP + DESKTOP] Admin sidebar expansion (>= 1025px) */
+@media (min-width: 1025px) {
   .hamburger {
     display: none;
   }
-  
-  .sidebar {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-  }
 }
 
-/* Overlay for mobile sidebar */
+/* [MOBILE] Sidebar overlay helper for collapsed states */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -66,8 +72,8 @@
   display: block;
 }
 
-/* Mobile specific improvements */
-@media (max-width: 767.98px) {
+/* [MOBILE] Narrow-screen refinements (<= 768px) */
+@media (max-width: 768px) {
   .sidebar {
     width: 280px !important;
     left: -280px !important;
@@ -93,7 +99,6 @@
   
   /* Improve touch scrolling */
   .sidebar {
-    -webkit-overflow-scrolling: touch !important;
     scrollbar-width: thin !important;
     scrollbar-color: rgba(255,255,255,0.3) transparent !important;
   }
@@ -117,8 +122,8 @@
   }
 }
 
-/* Extra small devices */
-@media (max-width: 575.98px) {
+/* [MOBILE] Compact refinements (<= 480px) */
+@media (max-width: 480px) {
   .sidebar {
     width: 260px !important;
     left: -260px !important;

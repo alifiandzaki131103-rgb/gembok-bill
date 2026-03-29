@@ -1,11 +1,18 @@
+<%
+    const currentPage = typeof page !== 'undefined' ? page : '';
+    const sidebarSettings = typeof settings !== 'undefined'
+        ? settings
+        : (typeof appSettings !== 'undefined' ? appSettings : {});
+%>
+
 <!-- Mobile Top Navbar (Only visible on mobile) -->
 <nav class="navbar navbar-expand-md navbar-dark d-md-none mobile-navbar">
     <div class="container-fluid">
         <div class="d-flex align-items-center">
-            <button class="btn btn-link text-white p-0 me-3" type="button" id="sidebarToggle">
+            <button class="btn btn-link text-white p-0 me-3" type="button" id="sidebarToggle" aria-label="Toggle admin sidebar">
                 <i class="bi bi-list" style="font-size: 1.5rem;"></i>
             </button>
-            <img src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>" alt="Logo" style="height: 35px; border-radius: 4px;">
+            <img src="/img/<%= sidebarSettings.logo_filename ? sidebarSettings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>" alt="Logo" style="height: 35px; border-radius: 4px;">
             <div class="d-flex flex-column ms-2">
                 <span class="navbar-brand mb-0">GEMBOK Admin</span>
                 <small class="text-light opacity-75">
@@ -20,17 +27,17 @@
 <div class="sidebar-overlay d-md-none" id="sidebarOverlay"></div>
 
 <!-- Admin Sidebar -->
-<nav class="col-md-2 sidebar d-flex flex-column" id="adminSidebar">
+<nav class="col-md-2 sidebar d-flex flex-column" id="adminSidebar" role="navigation" aria-label="Admin navigation" data-testid="admin-sidebar-shell">
     <!-- Close button for mobile -->
     <div class="d-md-none text-end p-3">
-        <button class="btn btn-link text-white p-0" id="sidebarClose">
+        <button class="btn btn-link text-white p-0" id="sidebarClose" aria-label="Close admin sidebar">
             <i class="bi bi-x" style="font-size: 1.5rem;"></i>
         </button>
     </div>
     
     <!-- Logo Section -->
     <div class="sidebar-header mb-4 text-center">
-        <img id="logoImage" src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?v=<%= new Date().getTime() %>" alt="Logo" style="max-width:120px;max-height:60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <img id="logoImage" src="/img/<%= sidebarSettings.logo_filename ? sidebarSettings.logo_filename : 'logo.png' %>?v=<%= new Date().getTime() %>" alt="Logo" style="max-width:120px;max-height:60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <div class="company-info mt-2">
             <h6 class="company-name mb-1">
                 <%= typeof versionInfo !== 'undefined' ? versionInfo.companyHeader : 'GEMBOK' %>
@@ -44,37 +51,37 @@
     </div>
     
     <!-- Navigation Links -->
-    <a href="/admin/dashboard" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>">
+    <a href="/admin/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
         <i class="bi bi-house"></i> Dashboard
     </a>
-    <a href="/admin/billing/dashboard" class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>">
+    <a href="/admin/billing/dashboard" class="<%= currentPage === 'billing' ? 'active' : '' %>">
         <i class="bi bi-receipt"></i> Billing
     </a>
-    <a href="/admin/agents" class="<%= typeof page !== 'undefined' && page === 'agents' ? 'active' : '' %>">
+    <a href="/admin/agents" class="<%= currentPage === 'agents' ? 'active' : '' %>">
         <i class="bi bi-person-badge-fill"></i> Web Agent
     </a>
-    <a href="/admin/technicians" class="<%= typeof page !== 'undefined' && (page === 'technicians' || page === 'installations') ? 'active' : '' %>">
+    <a href="/admin/technicians" class="<%= (currentPage === 'technicians' || currentPage === 'installations') ? 'active' : '' %>">
         <i class="bi bi-people-fill"></i> Teknisi & Instalasi
     </a>
-    <a href="/admin/cable-network/odp" class="<%= typeof page !== 'undefined' && (page === 'cable-network-odp' || page === 'cable-network-cables' || page === 'cable-network-analytics') ? 'active' : '' %>">
+    <a href="/admin/cable-network/odp" class="<%= (currentPage === 'cable-network-odp' || currentPage === 'cable-network-cables' || currentPage === 'cable-network-analytics') ? 'active' : '' %>">
         <i class="bi bi-diagram-3"></i> Jaringan Kabel
     </a>
-    <a href="/admin/billing/mapping-new" class="<%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>">
+    <a href="/admin/billing/mapping-new" class="<%= (currentPage === 'mapping-new' || currentPage === 'mapping' || currentPage === 'mapping-optimized') ? 'active' : '' %>">
         <i class="bi bi-map"></i> Network Mapping
     </a>
-    <a href="/admin/genieacs" class="<%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>">
+    <a href="/admin/genieacs" class="<%= currentPage === 'genieacs' ? 'active' : '' %>">
         <i class="bi bi-hdd-network"></i> GenieACS
     </a>
-    <a href="/admin/mikrotik" class="<%= typeof page !== 'undefined' && (page === 'mikrotik' || page === 'mikrotik-profiles' || page === 'hotspot-profiles' || page === 'hotspot' || page === 'voucher') ? 'active' : '' %>">
+    <a href="/admin/mikrotik" class="<%= (currentPage === 'mikrotik' || currentPage === 'mikrotik-profiles' || currentPage === 'hotspot-profiles' || currentPage === 'hotspot' || currentPage === 'voucher') ? 'active' : '' %>">
         <i class="bi bi-router"></i> Mikrotik
     </a>
-    <a href="/admin/trouble" class="<%= typeof page !== 'undefined' && page === 'trouble' ? 'active' : '' %>">
+    <a href="/admin/trouble" class="<%= currentPage === 'trouble' ? 'active' : '' %>">
         <i class="bi bi-exclamation-triangle"></i> Trouble Report
     </a>
-    <a href="/admin/settings" class="<%= typeof page !== 'undefined' && page === 'setting' ? 'active' : '' %>">
+    <a href="/admin/settings" class="<%= (currentPage === 'setting' || currentPage === 'settings') ? 'active' : '' %>">
         <i class="bi bi-gear"></i> Setting
     </a>
-    <a href="/admin/cache" class="<%= typeof page !== 'undefined' && page === 'cache' ? 'active' : '' %>">
+    <a href="/admin/cache" class="<%= currentPage === 'cache' ? 'active' : '' %>">
         <i class="bi bi-database"></i> Cache Management
     </a>
     <a href="/admin/logout">
@@ -87,7 +94,7 @@
         </div>
         <button id="btnCheckUpdate" class="btn btn-sm btn-warning w-100 mb-2"><i class="bi bi-arrow-clockwise"></i> Check Update</button>
         <button id="btnRunUpdate" class="btn btn-sm btn-danger w-100"><i class="bi bi-cloud-download"></i> Update & Restart</button>
-        <div id="updateResult" class="text-light mt-2" style="white-space: pre-wrap; font-size: 12px; display:none;"></div>
+        <div id="systemUpdateResult" class="text-light mt-2" style="white-space: pre-wrap; font-size: 12px; display:none;"></div>
     </div>
     
     <!-- Version Info Panel -->
@@ -472,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Close sidebar when clicking on nav links (mobile)
-    const navLinks = sidebar.querySelectorAll('a:not(#restartMikrotikBtn)');
+    const navLinks = sidebar ? sidebar.querySelectorAll('a:not(#restartMikrotikBtn)') : [];
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             if (window.innerWidth < 768) {
@@ -519,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // System Update handlers
     const btnCheck = document.getElementById('btnCheckUpdate');
     const btnUpdate = document.getElementById('btnRunUpdate');
-    const resultBox = document.getElementById('updateResult');
+    const resultBox = document.getElementById('systemUpdateResult');
 
     function showUpdateResult(text, success = true) {
         if (!resultBox) return;

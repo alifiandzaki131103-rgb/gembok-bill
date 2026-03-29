@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const AgentManager = require('../config/agentManager');
 const AgentWhatsAppManager = require('../config/agentWhatsApp');
@@ -12,6 +14,47 @@ const noCache = (req, res, next) => {
   res.header('Pragma', 'no-cache');
   next();
 };
+
+function resolveAgentTemplate(res, legacyTemplate, options = {}) {
+    const uiFlags = res && res.locals && res.locals.uiFlags;
+    const modernizationEnabled = Boolean(uiFlags && uiFlags.modernization);
+    const agentV2Enabled = Boolean(uiFlags && uiFlags.agent);
+
+    if (!modernizationEnabled || !agentV2Enabled) {
+        return legacyTemplate;
+    }
+
+    const normalizedTemplate = legacyTemplate.startsWith('agent/')
+        ? legacyTemplate.replace(/^agent\//, '')
+        : legacyTemplate;
+    const candidate = options.v2Template || `agent/v2/${normalizedTemplate}`;
+    const viewEngine = (res && res.app && res.app.get('view engine')) || 'ejs';
+    let viewDirs = res && res.app && res.app.get('views');
+
+    if (!viewDirs) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    } else if (!Array.isArray(viewDirs)) {
+        viewDirs = [viewDirs];
+    }
+
+    viewDirs = viewDirs.filter(Boolean);
+    if (viewDirs.length === 0) {
+        viewDirs = [path.join(__dirname, '..', 'views')];
+    }
+
+    const candidateFile = `${candidate}.${viewEngine}`;
+    for (const viewDir of viewDirs) {
+        if (fs.existsSync(path.join(viewDir, candidateFile))) {
+            return candidate;
+        }
+    }
+
+    return legacyTemplate;
+}
+
+function renderAgentView(res, template, locals = {}, options = {}) {
+    return res.render(resolveAgentTemplate(res, template, options), locals);
+}
 
 // Helper function to format phone number for WhatsApp
 function formatPhoneNumberForWhatsApp(phoneNumber) {
@@ -72,7 +115,7 @@ const requireAgentAuth = (req, res, next) => {
 router.get('/login', (req, res) => {
     try {
         const settings = getSettingsWithCache();
-        res.render('agent/login', {
+        renderAgentView(res, 'agent/login', {
             error: null,
             success: null,
             appSettings: settings
@@ -260,7 +303,7 @@ router.post('/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.render('agent/login', {
+            return renderAgentView(res, 'agent/login', {
                 error: 'Username dan password harus diisi',
                 success: null,
                 appSettings: getSettingsWithCache()
@@ -277,7 +320,7 @@ router.post('/login', async (req, res) => {
             logger.info(`Agent ${result.agent.username} logged in successfully`);
             res.redirect('/agent/dashboard');
         } else {
-            res.render('agent/login', {
+            renderAgentView(res, 'agent/login', {
                 error: result.message,
                 success: null,
                 appSettings: getSettingsWithCache()
@@ -285,7 +328,7 @@ router.post('/login', async (req, res) => {
         }
     } catch (error) {
         logger.error('Agent login error:', error);
-        res.render('agent/login', {
+        renderAgentView(res, 'agent/login', {
             error: 'Terjadi kesalahan saat login',
             success: null,
             appSettings: getSettingsWithCache()
@@ -318,7 +361,7 @@ router.get('/dashboard', requireAgentAuth, noCache, async (req, res) => {
         const recentTransactionsResult = await agentManager.getAgentTransactions(agentId, 1, 10, 'all');
         const recentTransactions = recentTransactionsResult.data || [];
         
-        res.render('agent/dashboard', {
+        renderAgentView(res, 'agent/dashboard', {
             agent,
             balance,
             stats,
@@ -347,7 +390,7 @@ router.get('/mobile', requireAgentAuth, noCache, async (req, res) => {
         const recentTransactionsResult = await agentManager.getAgentTransactions(agentId, 1, 10, 'all');
         const recentTransactions = recentTransactionsResult.data || [];
         
-        res.render('agent/mobile-dashboard', {
+        renderAgentView(res, 'agent/mobile-dashboard', {
             agent,
             balance,
             stats,
@@ -367,7 +410,7 @@ router.get('/profile', requireAgentAuth, noCache, async (req, res) => {
         const agentId = req.session.agentId;
         const agent = await agentManager.getAgentById(agentId);
         
-        res.render('agent/profile', {
+        renderAgentView(res, 'agent/profile', {
             agent,
             appSettings: getSettingsWithCache()
         });
@@ -411,7 +454,7 @@ router.post('/profile', requireAgentAuth, async (req, res) => {
 
 // GET: Change password page
 router.get('/change-password', requireAgentAuth, noCache, (req, res) => {
-    res.render('agent/change-password', {
+    renderAgentView(res, 'agent/change-password', {
         appSettings: getSettingsWithCache()
     });
 });

@@ -23,6 +23,35 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* ========================================
+   CANONICAL RESPONSIVE BREAKPOINT MAP
+   Canonical responsive baseline for this project.
+   Downstream files (`responsive-admin.css`, `customer-responsive.css`)
+   should align to this map in future consolidation passes.
+   ======================================== */
+:root {
+    --bp-mobile: 768px;          /* Mobile base: <= 768px */
+    --bp-mobile-compact: 480px;  /* Mobile compact: <= 480px */
+    --bp-mobile-mini: 360px;     /* Mobile mini: <= 360px */
+    --bp-tablet: 769px;          /* Tablet lower bound: 769px */
+    --bp-tablet-max: 1024px;     /* Tablet upper bound: 1024px */
+    --bp-laptop: 1025px;         /* Laptop+: >= 1025px */
+    --bp-desktop: 1280px;        /* Desktop: >= 1280px */
+}
+
+/* Canonical query references:
+   Mobile  -> @media (max-width: 768px)
+   Tablet  -> @media (min-width: 769px) and (max-width: 1024px)
+   Laptop+ -> @media (min-width: 1025px)
+   Desktop -> @media (min-width: 1280px) [reserved for future overrides]
+   Compact -> @media (max-width: 480px)  [mobile sub-range]
+   Mini    -> @media (max-width: 360px)  [mobile sub-range]
+*/
+
+/* Collision rule guard:
+   .card/.btn/.table/.sidebar must be tuned via --*-collision-* variables only.
+   Canonical structural declarations stay in public/css/components.css. */
+
 /* Modal scrolling fix - applies to all devices */
 .modal-dialog.modal-dialog-scrollable {
     max-height: calc(100vh - 40px);
@@ -82,7 +111,7 @@ body {
 }
 
 /* ========================================
-   MOBILE RESPONSIVE STYLES (≤768px)
+   MOBILE RESPONSIVE STYLES (<= --bp-mobile / 768px)
    ======================================== */
 @media (max-width: 768px) {
     /* Typography */
@@ -112,8 +141,9 @@ body {
         height: 100vh;
         z-index: 1050;
         transition: left 0.3s ease;
-        background: #fff;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        --sidebar-collision-bg: var(--white);
+        --sidebar-collision-border: var(--gray-200);
+        --sidebar-collision-shadow: 2px 0 10px rgba(0,0,0,0.1);
     }
     
     .sidebar.show {
@@ -155,7 +185,7 @@ body {
     /* Cards and panels */
     .card {
         margin-bottom: 15px;
-        border-radius: 8px;
+        --card-collision-radius: 8px;
     }
     
     .card-body {
@@ -173,13 +203,10 @@ body {
     }
     
     .table {
-        font-size: 14px;
-    }
-    
-    .table th,
-    .table td {
-        padding: 8px 6px;
-        font-size: 13px;
+        --table-collision-font-size: 13px;
+        --table-collision-cell-padding-y: 8px;
+        --table-collision-cell-padding-x: 6px;
+        --table-collision-head-font-size: 13px;
     }
     
     /* Forms */
@@ -198,10 +225,11 @@ body {
     
     /* Buttons */
     .btn {
-        min-height: 44px;
-        padding: 10px 20px;
-        font-size: 14px;
-        border-radius: 8px;
+        --btn-collision-min-height: 44px;
+        --btn-collision-padding-y: 10px;
+        --btn-collision-padding-x: 20px;
+        --btn-collision-font-size: 14px;
+        --btn-collision-radius: 8px;
         margin-bottom: 8px;
     }
     
@@ -358,7 +386,7 @@ body {
 }
 
 /* ========================================
-   TABLET RESPONSIVE STYLES (769px-1024px)
+   TABLET RESPONSIVE STYLES (--bp-tablet to 1024px)
    ======================================== */
 @media (min-width: 769px) and (max-width: 1024px) {
     .container-fluid {
@@ -375,8 +403,9 @@ body {
     }
     
     .btn {
-        min-height: 42px;
-        padding: 10px 18px;
+        --btn-collision-min-height: 42px;
+        --btn-collision-padding-y: 10px;
+        --btn-collision-padding-x: 18px;
     }
     
     .form-control,
@@ -386,7 +415,7 @@ body {
 }
 
 /* ========================================
-   DESKTOP RESPONSIVE STYLES (≥1025px)
+   LAPTOP+ RESPONSIVE STYLES (>= --bp-laptop / 1025px)
    ======================================== */
 @media (min-width: 1025px) {
     .container-fluid {
@@ -407,8 +436,9 @@ body {
     }
     
     .btn {
-        min-height: 40px;
-        padding: 8px 16px;
+        --btn-collision-min-height: 40px;
+        --btn-collision-padding-y: 8px;
+        --btn-collision-padding-x: 16px;
     }
     
     .form-control,
@@ -423,8 +453,9 @@ body {
 @media (hover: none) and (pointer: coarse) {
     /* Larger touch targets */
     .btn {
-        min-height: 48px;
-        padding: 12px 24px;
+        --btn-collision-min-height: 48px;
+        --btn-collision-padding-y: 12px;
+        --btn-collision-padding-x: 24px;
     }
     
     .form-control,
@@ -461,15 +492,18 @@ body {
 /* ========================================
    HIGH DPI DISPLAYS
    ======================================== */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .btn,
+@media (min-resolution: 2dppx), (min-resolution: 192dpi) {
+    .btn {
+        --btn-collision-border-width: 0.5px;
+    }
+
     .form-control,
     .form-select {
         border-width: 0.5px;
     }
     
     .card {
-        border-width: 0.5px;
+        --card-collision-border: #d5deea;
     }
 }
 
@@ -477,7 +511,13 @@ body {
    DARK MODE SUPPORT
    ======================================== */
 @media (prefers-color-scheme: dark) {
-    .card,
+    .card {
+        --card-collision-bg: #2d3748;
+        --card-collision-color: #e2e8f0;
+        --card-collision-border: #4a5568;
+        --card-collision-shadow: none;
+    }
+
     .modal-content,
     .dropdown-menu {
         background: #2d3748;
@@ -515,6 +555,7 @@ body {
     }
     
     .table {
+        --table-collision-border: #4a5568;
         color: #e2e8f0;
     }
     
@@ -546,11 +587,12 @@ body {
     }
     
     .card {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
+        --card-collision-border: #000 !important;
+        --card-collision-shadow: none !important;
     }
     
     .table {
+        --table-collision-border: #000 !important;
         border: 1px solid #000 !important;
     }
     
@@ -587,12 +629,19 @@ body {
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .btn,
     .form-control,
-    .form-select,
-    .card {
+    .form-select {
         border-width: 2px;
         border-color: #000;
+    }
+
+    .btn {
+        --btn-collision-border-width: 2px;
+        --btn-collision-border: #000;
+    }
+
+    .card {
+        --card-collision-border: #000;
     }
     
     .btn-primary {
@@ -976,7 +1025,7 @@ body {
     word-break: break-word;
 }
 
-/* Mobile-friendly visibility utilities */
+/* Mobile-friendly visibility utilities (<= --bp-mobile / 768px) */
 @media (max-width: 768px) {
     .mobile-hide {
         display: none !important;
@@ -1003,6 +1052,7 @@ body {
     }
 }
 
+/* Tablet and up visibility utilities (>= --bp-tablet / 769px) */
 @media (min-width: 769px) {
     .mobile-hide {
         display: block !important;

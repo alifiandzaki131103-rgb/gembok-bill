@@ -12,26 +12,31 @@
     <link rel="stylesheet" href="/css/pwa.css">
     <link rel="stylesheet" href="/css/customer-responsive.css">
     <script defer src="/js/pwa-install.js"></script>
-    <style>
-        body { background: #f8f9fa; }
-        .navbar-brand img { max-height: 40px; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .form-control { border-radius: 10px; }
-        .btn { border-radius: 10px; }
-    </style>
  </head>
- <body>
+ <body data-testid="customer-profile-page">
     <!-- Navbar atas dihilangkan untuk tampilan mobile minimalis -->
 
-    <div class="container mt-4">
-        <div class="row g-3">
+    <div class="container mt-4" data-testid="customer-profile-container">
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div class="customer-header">
+                    <h2 class="mb-1" data-testid="customer-profile-title">Profil Saya</h2>
+                    <p class="text-muted mb-0">Lihat data akun dan akses bantuan admin dengan cepat.</p>
+                </div>
+                <a href="/customer/billing/dashboard" class="btn btn-outline-primary btn-sm" data-testid="customer-profile-back">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
             <div class="col-12 col-lg-8">
-                <div class="card">
+                <div class="card" data-testid="customer-profile-card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-person-circle"></i> Profil Saya</h5>
+                        <h5 class="mb-0"><i class="bi bi-person-circle"></i> Data Pelanggan</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-3" data-testid="customer-profile-fields">
                             <div class="col-md-6">
                                 <label class="form-label">Nama</label>
                                 <input class="form-control" value="<%= customer ? customer.name : '-' %>" disabled>
@@ -49,37 +54,39 @@
                                 <input class="form-control" value="<%= customer && customer.package_name ? customer.package_name : '-' %>" disabled>
                             </div>
                         </div>
-                        
-                        <!-- Logout Button -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="d-grid">
-                                    <a href="/customer/logout" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin keluar?')">
-                                        <i class="bi bi-box-arrow-right"></i> Logout
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-12 col-lg-4">
-                <div class="card">
+                <div class="card mb-4" data-testid="customer-profile-help-card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-info-circle"></i> Bantuan</h5>
                     </div>
                     <div class="card-body">
                         <p class="mb-2">Hubungi admin untuk perubahan data profil.</p>
-                        <a href="https://wa.me/62<%= (appSettings.contact_whatsapp || '081947215703').replace(/^0/, '') %>" class="btn btn-success w-100" target="_blank">
+                        <a href="https://wa.me/62<%= (appSettings.contact_whatsapp || '081947215703').replace(/^0/, '') %>" class="btn btn-success w-100" target="_blank" data-testid="customer-profile-whatsapp-admin">
                             <i class="bi bi-whatsapp"></i> WhatsApp Admin
                         </a>
+                    </div>
+                </div>
+
+                <div class="card" data-testid="customer-profile-actions-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-gear"></i> Aksi Akun</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/customer/logout" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin keluar?')" data-testid="customer-profile-logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-light mt-5 py-4">
+    <footer class="bg-light mt-5 py-4" data-testid="customer-profile-footer">
         <div class="container text-center">
             <p class="mb-0 text-muted"><%= appSettings.footerInfo %></p>
         </div>
@@ -89,7 +96,7 @@
     <script src="/js/customer-mobile.js"></script>
 
     <!-- Bottom nav (mobile) 5 menu -->
-    <nav class="bottom-nav d-md-none">
+    <nav class="bottom-nav d-md-none" data-testid="customer-profile-nav">
         <a class="nav-item" href="/customer/billing/dashboard">
             <i class="bi bi-speedometer2"></i>
             <span>Billing</span>

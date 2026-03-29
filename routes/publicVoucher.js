@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const { getHotspotProfiles } = require('../config/mikrotik');
-const { getSettingsWithCache } = require('../config/settingsManager');
+const { getSettingsWithCache, getSetting } = require('../config/settingsManager');
 const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const billingManager = require('../config/billing');
 const logger = require('../config/logger');
@@ -119,6 +121,49 @@ async function getVoucherOnlineSettings() {
     });
 }
 
+const PUBLIC_VOUCHER_TEMPLATE = 'publicVoucher';
+const PUBLIC_VOUCHER_V2_TEMPLATE = 'publicVoucherV2';
+const UI_MODERNIZATION_SETTING = 'ui_modernization_enabled';
+const UI_FLAGS_VOUCHER_SETTING = 'ui_flags.voucher_ui_v2';
+
+function getViewPaths(res) {
+    const configuredViews = res.app && res.app.get('views');
+
+    if (Array.isArray(configuredViews)) {
+        return configuredViews;
+    }
+
+    if (typeof configuredViews === 'string') {
+        return [configuredViews];
+    }
+
+    return [path.join(process.cwd(), 'views')];
+}
+
+function getViewExtension(res) {
+    const viewEngine = res.app && res.app.get('view engine');
+
+    return viewEngine ? `.${viewEngine}` : '.ejs';
+}
+
+function viewTemplateExists(res, templateName) {
+    const extension = getViewExtension(res);
+
+    return getViewPaths(res).some((viewRoot) => fs.existsSync(path.join(viewRoot, `${templateName}${extension}`)));
+}
+
+function resolvePublicVoucherTemplate(res) {
+    const flags = (res.locals && res.locals.uiFlags) || {};
+    const modernizationEnabled = Boolean(flags.modernization ?? getSetting(UI_MODERNIZATION_SETTING, false));
+    const voucherFlagEnabled = Boolean(flags.voucher ?? getSetting(UI_FLAGS_VOUCHER_SETTING, false));
+
+    if (modernizationEnabled && voucherFlagEnabled && viewTemplateExists(res, PUBLIC_VOUCHER_V2_TEMPLATE)) {
+        return PUBLIC_VOUCHER_V2_TEMPLATE;
+    }
+
+    return PUBLIC_VOUCHER_TEMPLATE;
+}
+
 // Test route
 router.get('/test', (req, res) => {
     res.json({ success: true, message: 'Voucher router works!' });
@@ -148,6 +193,8 @@ router.get('/api/payment-methods', async (req, res) => {
 
 // GET: Halaman voucher publik
 router.get('/', async (req, res) => {
+    const templateToRender = resolvePublicVoucherTemplate(res);
+
     try {
         // Ambil profile hotspot
         const profilesResult = await getHotspotProfiles();
@@ -308,7 +355,7 @@ router.get('/', async (req, res) => {
         // Filter hanya paket yang enabled
         const voucherPackages = allPackages.filter(pkg => pkg.enabled);
 
-        res.render('publicVoucher', {
+        res.render(templateToRender, {
             title: 'Beli Voucher Hotspot',
             voucherPackages,
             profiles,
@@ -321,7 +368,7 @@ router.get('/', async (req, res) => {
 
     } catch (error) {
         console.error('Error rendering public voucher page:', error);
-        res.render('publicVoucher', {
+        res.render(templateToRender, {
             title: 'Beli Voucher Hotspot',
             voucherPackages: [],
             profiles: [],
@@ -814,19 +861,6 @@ function getPackageDuration(packageId) {
         '50k': '30 hari'
     };
     return durations[packageId] || 'Tidak diketahui';
-}
-
-// Helper function untuk mendapatkan teks durasi berdasarkan ID paket
-function getDurationText(packageId) {
-    const durations = {
-        '3k': '1 Hari',
-        '5k': '2 Hari',
-        '10k': '5 Hari',
-        '15k': '8 Hari',
-        '25k': '15 Hari',
-        '50k': '30 Hari'
-    };
-    return durations[packageId] || '1 Hari';
 }
 
 // Memperbaiki fungsi getDurationText untuk menggunakan data yang lebih dinamis

@@ -220,25 +220,8 @@ async function checkPPPoEChanges() {
     }
 }
 
-// Perbaiki timeout function dengan penanganan error yang lebih baik
-function scheduleNextCheck() {
-    console.log(`[PPPoE-MONITOR] Menjadwalkan pemeriksaan berikutnya dalam ${PPPoE_CONFIG.checkInterval/1000} detik`);
-    
-    setTimeout(async function _onTimeout() {
-        try {
-            await checkPPPoEChanges();
-        } catch (error) {
-            console.error('[PPPoE-MONITOR] Error pada timeout function:', error.message);
-        } finally {
-            // Pastikan penjadwalan berikutnya selalu dijalankan
-            scheduleNextCheck();
-        }
-    }, PPPoE_CONFIG.checkInterval);
-}
-
-// Mulai penjadwalan pemeriksaan
-console.log('[PPPoE-MONITOR] Memulai monitor PPPoE...');
-scheduleNextCheck();
+// Monitoring dijalankan hanya saat dipanggil melalui initialize/start,
+// agar tidak membebani startup web ketika fitur ini tidak dipakai.
 
 // Start PPPoE monitoring
 async function startPPPoEMonitoring() {

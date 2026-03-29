@@ -207,6 +207,46 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
+
+        .traffic-chart-title {
+            font-size: 1.1rem;
+        }
+
+        .interface-select-label {
+            font-size: 0.9rem;
+        }
+
+        .interface-select-inline {
+            width: auto;
+            font-size: 0.9rem;
+        }
+
+        .bandwidth-metric-label {
+            font-size: 0.75rem;
+        }
+
+        .bandwidth-metric-value {
+            font-size: 1.1rem;
+        }
+
+        .chart-canvas-wrapper {
+            height: 250px;
+        }
+
+        .chart-canvas-wrapper-sm {
+            height: 200px;
+        }
+
+        .toast-container-fixed {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast-min-width {
+            min-width: 300px;
+        }
         
         /* Touch improvements */
         @media (hover: none) and (pointer: coarse) {
@@ -463,10 +503,10 @@
                 <div class="card text-bg-info">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <div class="fw-bold" style="font-size: 1.1rem;"><i class="bi bi-graph-up-arrow"></i> Grafik Traffic Internet - <span id="currentInterface">Ether1</span></div>
+                      <div class="fw-bold traffic-chart-title"><i class="bi bi-graph-up-arrow"></i> Grafik Traffic Internet - <span id="currentInterface">Ether1</span></div>
                       <div class="d-flex align-items-center">
-                        <label for="interfaceSelect" class="form-label me-2 mb-0" style="font-size: 0.9rem;">Interface:</label>
-                        <select id="interfaceSelect" class="form-select form-select-sm" style="width: auto; font-size: 0.9rem;">
+                        <label for="interfaceSelect" class="form-label me-2 mb-0 interface-select-label">Interface:</label>
+                        <select id="interfaceSelect" class="form-select form-select-sm interface-select-inline">
                           <option value="ether1-ISP">Ether1-ISP (ISP)</option>
                           <!-- Interface akan di-load secara dinamis -->
                         </select>
@@ -478,32 +518,32 @@
                       <div class="col-md-3">
                         <div class="card bg-primary text-white bandwidth-card">
                           <div class="card-body text-center py-1">
-                            <small class="d-block" style="font-size: 0.75rem;">Download</small>
-                            <strong id="currentRx" style="font-size: 1.1rem;">0 Mbps</strong>
+                            <small class="d-block bandwidth-metric-label">Download</small>
+                            <strong id="currentRx" class="bandwidth-metric-value">0 Mbps</strong>
                           </div>
                         </div>
                       </div>
                       <div class="col-md-3">
                         <div class="card bg-success text-white bandwidth-card">
                           <div class="card-body text-center py-1">
-                            <small class="d-block" style="font-size: 0.75rem;">Upload</small>
-                            <strong id="currentTx" style="font-size: 1.1rem;">0 Mbps</strong>
+                            <small class="d-block bandwidth-metric-label">Upload</small>
+                            <strong id="currentTx" class="bandwidth-metric-value">0 Mbps</strong>
                             </div>
                         </div>
                       </div>
                       <div class="col-md-3">
                         <div class="card bg-info text-white bandwidth-card">
                           <div class="card-body text-center py-1">
-                            <small class="d-block" style="font-size: 0.75rem;">Total</small>
-                            <strong id="currentTotal" style="font-size: 1.1rem;">0 Mbps</strong>
+                            <small class="d-block bandwidth-metric-label">Total</small>
+                            <strong id="currentTotal" class="bandwidth-metric-value">0 Mbps</strong>
                           </div>
                         </div>
                       </div>
                       <div class="col-md-3">
                         <div class="card bg-warning text-white bandwidth-card">
                           <div class="card-body text-center py-1">
-                            <small class="d-block" style="font-size: 0.75rem;">Status</small>
-                            <strong id="currentStatus" style="font-size: 1.1rem;">Idle</strong>
+                            <small class="d-block bandwidth-metric-label">Status</small>
+                            <strong id="currentStatus" class="bandwidth-metric-value">Idle</strong>
                           </div>
                         </div>
                       </div>
@@ -518,7 +558,7 @@
                             <h6 class="mb-0"><i class="bi bi-download"></i> Download Traffic (RX)</h6>
                           </div>
                           <div class="card-body">
-                            <div style="height: 250px;">
+                            <div class="chart-canvas-wrapper">
                               <canvas id="rxChart"></canvas>
                             </div>
                           </div>
@@ -532,7 +572,7 @@
                             <h6 class="mb-0"><i class="bi bi-upload"></i> Upload Traffic (TX)</h6>
                           </div>
                           <div class="card-body">
-                            <div style="height: 250px;">
+                            <div class="chart-canvas-wrapper">
                               <canvas id="txChart"></canvas>
                             </div>
                           </div>
@@ -548,7 +588,7 @@
                             <h6 class="mb-0"><i class="bi bi-graph-up"></i> Combined Traffic Overview</h6>
                           </div>
                           <div class="card-body">
-                            <div style="height: 200px;">
+                            <div class="chart-canvas-wrapper-sm">
                               <canvas id="combinedChart"></canvas>
                             </div>
                           </div>
@@ -1079,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 <!-- Toast Container -->
-<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+<div id="toast-container" class="toast-container-fixed"></div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -1090,7 +1130,7 @@ function showToast(type, title, message, duration = 5000) {
     const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-primary';
     
     const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 300px;">
+        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0 toast-min-width" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
                     <i class="bi ${iconClass} me-2"></i>

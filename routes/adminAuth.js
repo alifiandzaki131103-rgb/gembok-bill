@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const { getSetting } = require('../config/settingsManager');
 const { validateConfiguration, getValidationSummary, checkForDefaultSettings } = require('../config/configValidator');
@@ -21,9 +23,43 @@ function adminAuth(req, res, next) {
   }
 }
 
+function resolveAdminTemplate(res, legacyTemplate, options = {}) {
+  const uiFlags = res && res.locals && res.locals.uiFlags;
+  const shouldUseModernUi = Boolean(uiFlags && uiFlags.modernization && uiFlags.admin);
+  if (!shouldUseModernUi) return legacyTemplate;
+
+  const candidate = options.v2Template || `admin/${legacyTemplate}`;
+  const viewEngine = (res && res.app && res.app.get('view engine')) || 'ejs';
+  let viewDirs = res && res.app && res.app.get('views');
+
+  if (!viewDirs) {
+    viewDirs = [path.join(__dirname, '..', 'views')];
+  } else if (!Array.isArray(viewDirs)) {
+    viewDirs = [viewDirs];
+  }
+
+  viewDirs = viewDirs.filter(Boolean);
+  if (viewDirs.length === 0) {
+    viewDirs = [path.join(__dirname, '..', 'views')];
+  }
+
+  const candidateFile = `${candidate}.${viewEngine}`;
+  for (const viewDir of viewDirs) {
+    if (fs.existsSync(path.join(viewDir, candidateFile))) {
+      return candidate;
+    }
+  }
+
+  return legacyTemplate;
+}
+
+function renderAdminLogin(res, locals = {}) {
+  return res.render(resolveAdminTemplate(res, 'adminLogin'), locals);
+}
+
 // GET: Halaman login admin
 router.get('/login', (req, res) => {
-  res.render('adminLogin', { error: null });
+  renderAdminLogin(res, { error: null });
 });
 
 // Test route untuk debugging
@@ -51,7 +87,7 @@ router.post('/login', async (req, res) => {
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
         return res.status(400).json({ success: false, message: 'Username dan password harus diisi!' });
       } else {
-        return res.render('adminLogin', { error: 'Username dan password harus diisi!' });
+        return renderAdminLogin(res, { error: 'Username dan password harus diisi!' });
       }
     }
 
@@ -107,7 +143,7 @@ router.post('/login', async (req, res) => {
       if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
         res.status(401).json({ success: false, message: 'Username atau password salah!' });
       } else {
-        res.render('adminLogin', { error: 'Username atau password salah.' });
+        renderAdminLogin(res, { error: 'Username atau password salah.' });
       }
     }
   } catch (error) {
@@ -116,7 +152,7 @@ router.post('/login', async (req, res) => {
     if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
       res.status(500).json({ success: false, message: 'Terjadi kesalahan saat login!' });
     } else {
-      res.render('adminLogin', { error: 'Terjadi kesalahan saat login.' });
+      renderAdminLogin(res, { error: 'Terjadi kesalahan saat login.' });
     }
   }
 });

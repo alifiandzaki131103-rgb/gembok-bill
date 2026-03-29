@@ -10,7 +10,7 @@
   "mikrotik_user": "admin",
   "mikrotik_password": "admin",
   "main_interface": "ether1-ISP",
-  "pppoe_monitor_enable": true,
+  "pppoe_monitor_enable": false,
   "technician_numbers.0": "",
   "technician_numbers.1": "",
   "technician_group_id": "",
@@ -18,7 +18,7 @@
   "whatsapp_restart_on_error": true,
   "rx_power_warning": "-35",
   "rx_power_critical": "-37",
-  "rx_power_notification_enable": true,
+  "rx_power_notification_enable": false,
   "rx_power_warning_interval": "36000000",
   "company_header": "GEMBOK-BILL",
   "footer_info": "Info Hubungi : 081947215703",
@@ -27,7 +27,7 @@
   "otp_length": "4",
   "otp_expiry_minutes": "5",
   "server_host": "localhost",
-  "pppoe_notifications.enabled": true,
+  "pppoe_notifications.enabled": false,
   "pppoe_notifications.loginNotifications": true,
   "pppoe_notifications.logoutNotifications": true,
   "pppoe_notifications.includeOfflineList": true,
@@ -35,9 +35,9 @@
   "trouble_report.enabled": true,
   "trouble_report.categories": "Internet Lambat,Tidak Bisa Browsing,WiFi Tidak Muncul,Koneksi Putus-Putus,Lainnya",
   "trouble_report.auto_ticket": true,
-  "rxpower_recap_enable": true,
+  "rxpower_recap_enable": false,
   "rxpower_recap_interval": "21600000",
-  "offline_notification_enable": true,
+  "offline_notification_enable": false,
   "offline_notification_interval": "43200000",
   "offline_device_threshold_hours": "24",
   "user_auth_mode": "mikrotik",
@@ -136,7 +136,7 @@
   "voucher_cleanup.delete_expired_invoices": true,
   "voucher_cleanup.log_cleanup_actions": true,
   "telegram_bot": {
-    "enabled": true,
+    "enabled": false,
     "bot_token": "883632178:AAHEM6H2lYhOxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "session_timeout_hours": 24,
     "auto_session_cleanup": true,
@@ -155,5 +155,25 @@
       "comment_format": "tele-{username}-{date}-{time}-{creator}",
       "session_management_enabled": true
     }
+  },
+  "pppoe_notifications": {
+    "enabled": false
+  },
+  "ui_modernization_enabled": false,
+  "ui_flags": {
+    "customer_ui_v2": false,
+    "admin_ui_v2": false,
+    "technician_ui_v2": false,
+    "agent_ui_v2": false,
+    "collector_ui_v2": false,
+    "voucher_ui_v2": false
+  },
+  "feature_flags": {
+    "technician_sync_enabled": false,
+    "whatsapp_integration_enabled": false,
+    "scheduled_tasks_enabled": false,
+    "interval_monitoring_enabled": false,
+    "pppoe_realtime_monitor_enabled": false,
+    "legacy_pppoe_monitor_enabled": false
   }
 }

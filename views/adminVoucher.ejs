@@ -94,6 +94,22 @@
         .spin {
             animation: spin 1s infinite linear;
         }
+        .voucher-icon-2rem {
+            font-size: 2rem;
+        }
+        .voucher-icon-3rem {
+            font-size: 3rem;
+        }
+        .voucher-print-btn-hidden {
+            display: none;
+        }
+        .voucher-search-input-group {
+            max-width: 200px;
+        }
+        .voucher-loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -616,7 +632,7 @@
                     <div class="card-body">
                         <div id="reprintVoucherList">
                             <div class="text-center text-muted">
-                                <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
+                                <i class="bi bi-clock-history voucher-icon-2rem"></i>
                                 <p class="mt-2">Belum ada history voucher untuk di-print ulang</p>
                             </div>
                         </div>
@@ -630,14 +646,14 @@
                 <div class="card mb-4">
                     <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>Voucher yang Dihasilkan</h5>
-                        <button class="btn btn-sm btn-light" id="printVouchersBtn" style="display: none;">
+                        <button class="btn btn-sm btn-light voucher-print-btn-hidden" id="printVouchersBtn">
                             <i class="bi bi-printer me-1"></i>Print Voucher
                         </button>
                     </div>
                     <div class="card-body">
                         <div id="voucherResult">
                             <div class="text-center py-4 text-muted">
-                                <i class="bi bi-ticket-perforated" style="font-size: 3rem;"></i>
+                                <i class="bi bi-ticket-perforated voucher-icon-3rem"></i>
                                 <p class="mt-3">Belum ada voucher yang dihasilkan. Gunakan form di samping untuk generate voucher baru.</p>
                             </div>
                         </div>
@@ -648,7 +664,7 @@
                 <div class="card">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>History Voucher</h5>
-                        <div class="input-group" style="max-width: 200px;">
+                        <div class="input-group voucher-search-input-group">
                             <input type="text" id="searchVoucherInput" class="form-control" placeholder="Cari voucher...">
                             <button class="btn btn-light" type="button" id="clearVoucherSearchBtn">
                                 <i class="bi bi-x-lg"></i>
@@ -891,7 +907,7 @@
             const voucherResultDiv = document.getElementById('voucherResult');
             voucherResultDiv.innerHTML = `
                 <div class="text-center py-5 animate__animated animate__pulse animate__infinite">
-                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <div class="spinner-border text-primary mb-3 voucher-loading-spinner" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                     <p class="lead mb-0">Sedang membuat voucher...</p>
@@ -1007,7 +1023,7 @@
                                         </thead>
                                         <tbody>
                                             ${result.vouchers.map((v, index) => `
-                                                <tr class="animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.1}s">
+                                                <tr class="animate__animated animate__fadeInUp voucher-result-row" data-animation-delay="${index * 0.1}">
                                                     <td><code>${v.username}</code></td>
                                                     <td><code>${v.password}</code></td>
                                                     <td><span class="badge bg-info">${v.profile}</span></td>
@@ -1029,6 +1045,10 @@
                             </div>
                         </div>`;
                     voucherResultDiv.innerHTML = resultHTML;
+                    voucherResultDiv.querySelectorAll('.voucher-result-row').forEach(row => {
+                        const delay = Number(row.dataset.animationDelay || 0);
+                        row.style.animationDelay = `${delay}s`;
+                    });
                     
                     // Tambahkan section untuk print ulang voucher
                     const reprintSection = `
@@ -1039,7 +1059,7 @@
                             <div class="card-body">
                                 <div id="reprintVoucherList">
                                     <div class="text-center text-muted">
-                                        <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
+                                        <i class="bi bi-clock-history voucher-icon-2rem"></i>
                                         <p class="mt-2">Belum ada history voucher untuk di-print ulang</p>
                                     </div>
                                 </div>
@@ -1079,7 +1099,7 @@
                     voucherResultDiv.innerHTML = `
                         <div class="alert alert-danger animate__animated animate__shakeX">
                             <div class="d-flex align-items-center">
-                                <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
+                                <i class="bi bi-exclamation-triangle-fill me-3 voucher-icon-2rem"></i>
                                 <div>
                                     <h5 class="alert-heading">Gagal Membuat Voucher</h5>
                                     <p class="mb-0">${result.message || 'Tidak ada voucher yang berhasil dibuat. Periksa koneksi ke Mikrotik.'}</p>
@@ -1094,7 +1114,7 @@
                 voucherResultDiv.innerHTML = `
                     <div class="alert alert-danger animate__animated animate__shakeX">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
+                            <i class="bi bi-exclamation-triangle-fill me-3 voucher-icon-2rem"></i>
                             <div>
                                 <h5 class="alert-heading">Terjadi Kesalahan</h5>
                                 <p class="mb-0">Gagal menghubungi server. Periksa koneksi jaringan dan coba lagi.</p>
@@ -1189,14 +1209,12 @@
             
             const config = modelConfig[model] || modelConfig.standard;
             
-            const backgroundStyle = config.background ? `style="background: ${config.background};"` : '';
-            
             return `
-                <div class="voucher-card voucher-${model}" ${backgroundStyle}>
-                    <div class="voucher-header" style="background: ${config.headerBg};">
+                <div class="voucher-card voucher-${model}">
+                    <div class="voucher-header">
                         ${config.icon} ${namaHotspot || 'VOUCHER HOTSPOT'}
                     </div>
-                    ${formattedPrice ? `<div class="voucher-price" style="color: ${config.priceColor};">${formattedPrice}</div>` : ''}
+                    ${formattedPrice ? `<div class="voucher-price">${formattedPrice}</div>` : ''}
                     <div class="voucher-username">${voucher.username}</div>
                     <div class="voucher-info">Profile: ${voucher.profile || 'default'}</div>
                     <div class="voucher-footer">${adminKontak || 'Hubungi Admin'}</div>
@@ -1340,6 +1358,48 @@
                             border-color: #28a745;
                             box-shadow: 0 2px 8px rgba(40,167,69,0.2);
                             background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+                        }
+                        .voucher-premium .voucher-header {
+                            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+                        }
+                        .voucher-premium .voucher-price {
+                            color: #fd7e14;
+                        }
+                        .voucher-success .voucher-header {
+                            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+                        }
+                        .voucher-success .voucher-price {
+                            color: #20c997;
+                        }
+                        .voucher-warning .voucher-header {
+                            background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+                        }
+                        .voucher-warning .voucher-price {
+                            color: #ffc107;
+                        }
+                        .voucher-danger .voucher-header {
+                            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                        }
+                        .voucher-danger .voucher-price {
+                            color: #e83e8c;
+                        }
+                        .voucher-tropical .voucher-header {
+                            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+                        }
+                        .voucher-tropical .voucher-price {
+                            color: #ffffff;
+                        }
+                        .voucher-minimalist .voucher-header {
+                            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+                        }
+                        .voucher-minimalist .voucher-price {
+                            color: #fd7e14;
+                        }
+                        .voucher-nature .voucher-header {
+                            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                        }
+                        .voucher-nature .voucher-price {
+                            color: #198754;
                         }
                         .voucher-card::before {
                             content: '';
@@ -1598,7 +1658,7 @@
             if (voucherHistory.length === 0) {
                 reprintList.innerHTML = `
                     <div class="text-center text-muted">
-                        <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
+                        <i class="bi bi-clock-history voucher-icon-2rem"></i>
                         <p class="mt-2">Belum ada history voucher untuk di-print ulang</p>
                     </div>
                 `;

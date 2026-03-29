@@ -283,6 +283,66 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
+
+        .welcome-tools-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        .quick-action-icon {
+            font-size: 2rem;
+        }
+
+        .quick-action-icon-primary {
+            color: var(--primary-color);
+        }
+
+        .quick-action-icon-info {
+            color: var(--info-color);
+        }
+
+        .quick-action-icon-success {
+            color: var(--success-color);
+        }
+
+        .quick-action-icon-warning {
+            color: var(--warning-color);
+        }
+
+        .empty-activity-icon {
+            font-size: 3rem;
+            color: #ddd;
+        }
+
+        .completed-task-icon {
+            font-size: 3rem;
+            color: var(--success-color);
+        }
+
+        .technician-mobile-bottom-nav-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+
+        .technician-mobile-bottom-nav {
+            background: linear-gradient(180deg, rgba(4, 78, 59, 0.96), rgba(5, 150, 105, 0.96)) !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1030 !important;
+        }
+
+        .technician-mobile-home-icon {
+            font-size: 1.5rem;
+        }
+
+        .technician-mobile-bottom-spacer {
+            height: 80px;
+        }
     </style>
 </head>
 <body>
@@ -595,7 +655,7 @@
                             <% } %>
                         </div>
                         <div class="col-md-4 text-md-end">
-                            <i class="bi bi-tools" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <i class="bi bi-tools welcome-tools-icon"></i>
                         </div>
                     </div>
                 </div>
@@ -647,26 +707,26 @@
                     </div>
                     <div class="col-md-3">
                         <a href="/technician/customers" class="quick-action-btn">
-                            <i class="bi bi-person-plus" style="font-size: 2rem; color: var(--primary-color);"></i>
+                            <i class="bi bi-person-plus quick-action-icon quick-action-icon-primary"></i>
                             <h6 class="mt-2 mb-0">Tambah Pelanggan</h6>
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="/technician/monitoring" class="quick-action-btn">
-                            <i class="bi bi-activity" style="font-size: 2rem; color: var(--info-color);"></i>
+                            <i class="bi bi-activity quick-action-icon quick-action-icon-info"></i>
                             <h6 class="mt-2 mb-0">Cek Monitoring</h6>
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="/technician/mapping" class="quick-action-btn">
-                            <i class="bi bi-geo-alt" style="font-size: 2rem; color: var(--success-color);"></i>
+                            <i class="bi bi-geo-alt quick-action-icon quick-action-icon-success"></i>
                             <h6 class="mt-2 mb-0">Lihat Mapping</h6>
                         </a>
                     </div>
                     <% if (technician.role === 'collector' || technician.role === 'field_officer') { %>
                     <div class="col-md-3">
                         <a href="/technician/payments" class="quick-action-btn">
-                            <i class="bi bi-credit-card" style="font-size: 2rem; color: var(--warning-color);"></i>
+                            <i class="bi bi-credit-card quick-action-icon quick-action-icon-warning"></i>
                             <h6 class="mt-2 mb-0">Catat Pembayaran</h6>
                         </a>
                     </div>
@@ -702,7 +762,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <div class="activity-item text-center">
-                                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ddd;"></i>
+                                    <i class="bi bi-inbox empty-activity-icon"></i>
                                     <p class="text-muted mt-2 mb-0">Belum ada aktivitas</p>
                                 </div>
                             <% } %>
@@ -732,7 +792,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <div class="task-item text-center">
-                                    <i class="bi bi-check-circle" style="font-size: 3rem; color: var(--success-color);"></i>
+                                    <i class="bi bi-check-circle completed-task-icon"></i>
                                     <p class="text-muted mt-2 mb-0">Semua tugas selesai!</p>
                                 </div>
                             <% } %>
@@ -768,8 +828,8 @@
     </script>
 
     <!-- Bottom Navigation for Mobile -->
-    <div class="d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1030;">
-        <nav class="navbar fixed-bottom navbar-dark bg-dark" style="background: linear-gradient(180deg, rgba(4, 78, 59, 0.96), rgba(5, 150, 105, 0.96)) !important; position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 1030 !important;">
+    <div class="d-md-none technician-mobile-bottom-nav-wrapper">
+        <nav class="navbar fixed-bottom navbar-dark bg-dark technician-mobile-bottom-nav">
             <div class="container-fluid">
                 <div class="row w-100">
                     <div class="col text-center">
@@ -786,7 +846,7 @@
                     </div>
                     <div class="col text-center">
                         <a href="/technician/dashboard" class="text-light text-decoration-none">
-                            <i class="bi bi-house-fill d-block" style="font-size: 1.5rem;"></i>
+                            <i class="bi bi-house-fill d-block technician-mobile-home-icon"></i>
                             <small>Home</small>
                         </a>
                     </div>
@@ -808,6 +868,6 @@
     </div>
 
     <!-- Add bottom padding for mobile -->
-    <div class="d-md-none" style="height: 80px;"></div>
+    <div class="d-md-none technician-mobile-bottom-spacer"></div>
 </body>
 </html>
