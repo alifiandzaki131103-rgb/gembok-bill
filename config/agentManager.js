@@ -1,13 +1,100 @@
+const path = require('path');
+const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const { getSettingsWithCache } = require('./settingsManager');
 const logger = require('./logger');
+const { ensureHealthyBillingDatabase } = require('./sqliteHealthGate');
 
 class AgentManager {
     constructor() {
-        this.dbPath = './data/billing.db';  // Menggunakan database yang sama dengan sistem utama
-        this.db = new sqlite3.Database(this.dbPath);
-        this.createTables();
+        this.dbPath = path.join(__dirname, '../data/billing.db'); // Menggunakan database yang sama dengan sistem utama
+        this.initDatabase();
+    }
+
+    isCorruptionError(err) {
+        if (!err || typeof err.message !== 'string') {
+            return false;
+        }
+
+        const message = err.message.toLowerCase();
+        return message.includes('sqlite_corrupt')
+            || message.includes('database disk image is malformed')
+            || message.includes('file is not a database');
+    }
+
+    quarantineCorruptedDatabaseFiles(reason) {
+        const dataDir = path.dirname(this.dbPath);
+        const quarantineDir = path.join(dataDir, 'corrupt-backups');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const files = [
+            this.dbPath,
+            `${this.dbPath}-wal`,
+            `${this.dbPath}-shm`
+        ];
+
+        if (!fs.existsSync(quarantineDir)) {
+            fs.mkdirSync(quarantineDir, { recursive: true });
+        }
+
+        let movedMainDb = false;
+
+        files.forEach((sourcePath) => {
+            if (!fs.existsSync(sourcePath)) {
+                return;
+            }
+
+            const destinationPath = path.join(
+                quarantineDir,
+                `${path.basename(sourcePath)}.${timestamp}.corrupt`
+            );
+
+            try {
+                fs.renameSync(sourcePath, destinationPath);
+            } catch (renameError) {
+                fs.copyFileSync(sourcePath, destinationPath);
+                if (sourcePath === this.dbPath) {
+                    fs.rmSync(sourcePath, { force: true });
+                }
+            }
+
+            if (sourcePath === this.dbPath) {
+                movedMainDb = true;
+            }
+
+            logger.error(`[AGENT] Corrupted SQLite file quarantined: ${sourcePath} -> ${destinationPath}`);
+        });
+
+        if (!movedMainDb && fs.existsSync(this.dbPath)) {
+            throw new Error(`[AGENT] Failed to quarantine corrupted primary DB file (${this.dbPath}). Reason: ${reason}`);
+        }
+    }
+
+    openDatabaseAndInitializeSchema() {
+        this.db = new sqlite3.Database(this.dbPath, (openErr) => {
+            if (openErr) {
+                logger.error('[AGENT] Error opening billing database:', openErr);
+                return;
+            }
+
+            this.createTables();
+        });
+    }
+
+    initDatabase() {
+        const dataDir = path.dirname(this.dbPath);
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+
+        ensureHealthyBillingDatabase(this.dbPath, logger, 'AGENT')
+            .then(() => {
+                this.openDatabaseAndInitializeSchema();
+            })
+            .catch((error) => {
+                logger.error('[AGENT] SQLite preflight health check failed:', error.message);
+                this.openDatabaseAndInitializeSchema();
+            });
     }
 
     createTables() {

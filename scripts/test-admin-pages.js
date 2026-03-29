@@ -4,13 +4,40 @@
  * Test Admin Pages - Script untuk menguji apakah halaman admin dapat diakses
  */
 
+const fs = require('fs');
+const path = require('path');
 const http = require('http');
+
+function parsePort(value, fallbackPort) {
+    const parsed = Number.parseInt(String(value), 10);
+    if (Number.isNaN(parsed) || parsed <= 0) {
+        return fallbackPort;
+    }
+
+    return parsed;
+}
+
+function loadAppSettings() {
+    const settingsPath = path.join(__dirname, '..', 'settings.json');
+
+    try {
+        const raw = fs.readFileSync(settingsPath, 'utf8');
+        return JSON.parse(raw);
+    } catch (error) {
+        return {};
+    }
+}
+
+const appSettings = loadAppSettings();
+const testHost = process.env.ADMIN_TEST_HOST || process.env.HOST || appSettings.server_host || 'localhost';
+const testPort = parsePort(process.env.ADMIN_TEST_PORT || process.env.PORT || appSettings.server_port, 3005);
+const requestTimeoutMs = parsePort(process.env.ADMIN_TEST_TIMEOUT_MS, 10000);
 
 async function testAdminPage(path) {
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'localhost',
-            port: 3005,
+            hostname: testHost,
+            port: testPort,
             path: path,
             method: 'GET',
             headers: {
@@ -37,6 +64,10 @@ async function testAdminPage(path) {
         req.on('error', (error) => {
             reject(error);
         });
+
+        req.setTimeout(requestTimeoutMs, () => {
+            req.destroy(new Error(`Request timeout after ${requestTimeoutMs}ms`));
+        });
         
         req.end();
     });
@@ -44,6 +75,8 @@ async function testAdminPage(path) {
 
 async function testAdminPages() {
     console.log('🔍 Testing admin pages accessibility...\n');
+    console.log(`🌐 Target: http://${testHost}:${testPort}`);
+    console.log('');
     
     try {
         // Test technicians page
@@ -79,7 +112,9 @@ async function testAdminPages() {
         console.log('\n🎉 Admin pages test completed!');
         
     } catch (error) {
-        console.error('❌ Error testing admin pages:', error.message);
+        const message = error && error.message ? error.message : String(error);
+        console.error('❌ Error testing admin pages:', message);
+        throw error;
     }
 }
 

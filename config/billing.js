@@ -5,12 +5,93 @@ const PaymentGatewayManager = require('./paymentGateway');
 const logger = require('./logger'); // Added logger import
 const { getCompanyHeader } = require('./message-templates');
 const { getSetting } = require('./settingsManager');
+const { ensureHealthyBillingDatabase } = require('./sqliteHealthGate');
 
 class BillingManager {
     constructor() {
         this.dbPath = path.join(__dirname, '../data/billing.db');
         this.paymentGateway = new PaymentGatewayManager();
         this.initDatabase();
+    }
+
+    isCorruptionError(err) {
+        if (!err || typeof err.message !== 'string') {
+            return false;
+        }
+
+        const message = err.message.toLowerCase();
+        return message.includes('sqlite_corrupt')
+            || message.includes('database disk image is malformed')
+            || message.includes('file is not a database');
+    }
+
+    quarantineCorruptedDatabaseFiles(reason) {
+        const dataDir = path.dirname(this.dbPath);
+        const quarantineDir = path.join(dataDir, 'corrupt-backups');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const files = [
+            this.dbPath,
+            `${this.dbPath}-wal`,
+            `${this.dbPath}-shm`
+        ];
+
+        if (!fs.existsSync(quarantineDir)) {
+            fs.mkdirSync(quarantineDir, { recursive: true });
+        }
+
+        let movedMainDb = false;
+
+        files.forEach((sourcePath) => {
+            if (!fs.existsSync(sourcePath)) {
+                return;
+            }
+
+            const destinationPath = path.join(
+                quarantineDir,
+                `${path.basename(sourcePath)}.${timestamp}.corrupt`
+            );
+
+            try {
+                fs.renameSync(sourcePath, destinationPath);
+            } catch (renameError) {
+                fs.copyFileSync(sourcePath, destinationPath);
+                if (sourcePath === this.dbPath) {
+                    fs.rmSync(sourcePath, { force: true });
+                }
+            }
+
+            if (sourcePath === this.dbPath) {
+                movedMainDb = true;
+            }
+
+            logger.error(`[BILLING] Corrupted SQLite file quarantined: ${sourcePath} -> ${destinationPath}`);
+        });
+
+        if (!movedMainDb && fs.existsSync(this.dbPath)) {
+            throw new Error(`[BILLING] Failed to quarantine corrupted primary DB file (${this.dbPath}). Reason: ${reason}`);
+        }
+    }
+
+    openDatabaseAndInitializeSchema() {
+        this.db = new sqlite3.Database(this.dbPath, (openErr) => {
+            if (openErr) {
+                console.error('Error opening billing database:', openErr);
+                logger.error('[BILLING] Error opening billing database:', openErr.message);
+                return;
+            }
+
+            console.log('Billing database connected');
+
+            this.db.run('PRAGMA foreign_keys = ON', (err) => {
+                if (err) {
+                    console.error('Error enabling foreign keys:', err);
+                } else {
+                    console.log('✅ Foreign keys enabled for cascade delete');
+                }
+            });
+
+            this.createTables();
+        });
     }
 
     // Hot-reload payment gateway configuration from settings.json
@@ -50,25 +131,14 @@ class BillingManager {
             fs.mkdirSync(dataDir, { recursive: true });
         }
 
-        // Inisialisasi database secara synchronous
-        try {
-            this.db = new sqlite3.Database(this.dbPath);
-            console.log('Billing database connected');
-
-            // Enable foreign key constraints for cascade delete
-            this.db.run("PRAGMA foreign_keys = ON", (err) => {
-                if (err) {
-                    console.error('Error enabling foreign keys:', err);
-                } else {
-                    console.log('✅ Foreign keys enabled for cascade delete');
-                }
+        ensureHealthyBillingDatabase(this.dbPath, logger, 'BILLING')
+            .then(() => {
+                this.openDatabaseAndInitializeSchema();
+            })
+            .catch((error) => {
+                logger.error('[BILLING] SQLite preflight health check failed:', error.message);
+                this.openDatabaseAndInitializeSchema();
             });
-
-            this.createTables();
-        } catch (err) {
-            console.error('Error opening billing database:', err);
-            throw err;
-        }
     }
 
     async updateCustomerById(id, customerData) {

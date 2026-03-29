@@ -2,11 +2,36 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const logger = require('./config/logger');
-const whatsapp = require('./config/whatsapp');
-const { monitorPPPoEConnections } = require('./config/mikrotik');
 const fs = require('fs');
 const session = require('express-session');
+const { spawnSync } = require('child_process');
 const { getSetting } = require('./config/settingsManager');
+
+// Preflight billing database integrity check before loading modules that may open DB handles.
+// This avoids file-lock races during corruption recovery on Windows.
+const billingDbPreflightScript = path.join(__dirname, 'scripts', 'preflight-billing-db.js');
+if (fs.existsSync(billingDbPreflightScript)) {
+    const preflightResult = spawnSync(process.execPath, [billingDbPreflightScript], {
+        cwd: __dirname,
+        env: process.env,
+        encoding: 'utf8'
+    });
+
+    if (preflightResult.stdout && preflightResult.stdout.trim()) {
+        logger.info(preflightResult.stdout.trim());
+    }
+
+    if (preflightResult.stderr && preflightResult.stderr.trim()) {
+        logger.error(preflightResult.stderr.trim());
+    }
+
+    if (preflightResult.status !== 0) {
+        logger.error(`Billing DB preflight exited with non-zero status: ${preflightResult.status}`);
+    }
+}
+
+const whatsapp = require('./config/whatsapp');
+const { monitorPPPoEConnections } = require('./config/mikrotik');
 
 function isFeatureEnabled(settingKey, defaultValue = false) {
     const rawValue = getSetting(settingKey, defaultValue);

@@ -808,7 +808,7 @@ router.post('/api/collector-remittance', adminAuth, async (req, res) => {
     }
 });
 
-// Mobile Map Management - Now using responsive mapping-new.ejs
+// Mobile Map Management - Use canonical responsive mapping page
 router.get('/mobile/map', getAppSettings, async (req, res) => {
     try {
         // Redirect to main mapping page (responsive)
@@ -4754,32 +4754,72 @@ router.get('/devices', getAppSettings, async (req, res) => {
     }
 });
 
-// New Mapping page
+const isAdminMappingV2Enabled = () => {
+    const rawValue = getSetting('ui_flags.admin_ui_v2', false);
+
+    if (typeof rawValue === 'boolean') {
+        return rawValue;
+    }
+
+    if (typeof rawValue === 'string') {
+        const normalized = rawValue.trim().toLowerCase();
+        if (['true', '1', 'yes', 'on'].includes(normalized)) {
+            return true;
+        }
+        if (['false', '0', 'no', 'off'].includes(normalized)) {
+            return false;
+        }
+    }
+
+    if (typeof rawValue === 'number') {
+        return rawValue === 1;
+    }
+
+    return false;
+};
+
+const getAdminMappingTemplate = () => (
+    isAdminMappingV2Enabled()
+        ? 'admin/billing/mapping-new'
+        : 'admin/billing/mapping'
+);
+
+const getAdminMappingTitle = (templateName) => (
+    templateName === 'admin/billing/mapping-new'
+        ? 'Network Mapping - New'
+        : 'Network Mapping'
+);
+
+// Legacy alias route: keep compatibility but canonicalize to /mapping
 router.get('/mapping-new', getAppSettings, async (req, res) => {
     try {
-        res.render('admin/billing/mapping-new', {
-            title: 'Network Mapping - New',
-            user: req.user,
-            settings: req.appSettings
-        });
+        return res.redirect('/admin/billing/mapping');
     } catch (error) {
-        console.error('Error rendering new mapping page:', error);
+        logger.error('Error redirecting mapping-new alias:', error);
         res.status(500).render('error', {
-            message: 'Error loading mapping page',
-            error: error
+            message: 'Error redirecting mapping page',
+            error: error.message,
+            appSettings: req.appSettings
         });
     }
 });
 
-// Mapping page - Redirect to new mapping page
+// Canonical mapping page with feature-flagged v2/legacy fallback
 router.get('/mapping', getAppSettings, async (req, res) => {
     try {
-        // Redirect to new mapping page
-        return res.redirect('/admin/billing/mapping-new');
+        const templateName = getAdminMappingTemplate();
+
+        return res.render(templateName, {
+            title: getAdminMappingTitle(templateName),
+            page: 'mapping',
+            user: req.user,
+            settings: req.appSettings,
+            appSettings: req.appSettings
+        });
     } catch (error) {
-        logger.error('Error redirecting to mapping page:', error);
+        logger.error('Error rendering mapping page:', error);
         res.status(500).render('error', {
-            message: 'Error redirecting to mapping page',
+            message: 'Error loading mapping page',
             error: error.message,
             appSettings: req.appSettings
         });
@@ -4798,7 +4838,7 @@ router.get('/mobile/mapping', getAppSettings, async (req, res) => {
         const activeCustomers = customersWithCoords.filter(c => c.status === 'active').length;
         const suspendedCustomers = customersWithCoords.filter(c => c.status === 'suspended').length;
 
-        // Use responsive mapping-new.ejs instead of separate mobile version
+        // Use canonical responsive mapping page instead of separate mobile version
         res.redirect('/admin/billing/mapping');
     } catch (error) {
         logger.error('Error loading mobile mapping page:', error);
